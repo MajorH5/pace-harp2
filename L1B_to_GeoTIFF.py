@@ -1,8 +1,8 @@
 import os
 import numpy as np
-# import rasterio
-# from rasterio.transform import from_gcps, from_origin, xy
-# from rasterio.control import GroundControlPoint as GCP
+import rasterio
+from rasterio.transform import from_gcps, from_origin, xy
+from rasterio.control import GroundControlPoint as GCP
 try:
     from pyresample import image, geometry, kd_tree
 except:
@@ -131,10 +131,10 @@ def readOCI_l1b(fileName):
     return lat, lon, rhot, solar_irradiance, wavelength
 
 # Location of the file
-fileName = './PACE_HARP2.20240827T173938.L1C.V2.5km-v0.2.4.IDOLP-test.nc'
+fileName = './PACE_HARP2.20240523T003106.L1C.V2.5km.nc'
 
 # Instrument
-instrument = 'OCI'
+instrument = 'HARP2'
 
 # verbose to print the more information
 verbose = True
@@ -142,13 +142,14 @@ verbose = True
 # reflectance image
 if instrument == 'HARP2':
     # Read the file
-    l1b = L1.L1B()
+    l1b = L1.L1C()
     l1b_dict = l1b.read(fileName)
     var2plot = 'i'
     angleIdx = 35
-    im_data = l1b_dict[var2plot][angleIdx,:,:]
-    im_lat = l1b_dict['latitude'][angleIdx,:,:]
-    im_lon = l1b_dict['longitude'][angleIdx,:,:]
+    print(l1b_dict['latitude'].shape)
+    im_data = l1b_dict[var2plot][:,:]
+    im_lat = l1b_dict['latitude'][:,:]
+    im_lon = l1b_dict['longitude'][:,:]
 
 elif instrument == 'OCI':
     # Read the OCI L1B data
@@ -173,8 +174,8 @@ elif instrument == 'OCI':
 
 # Define the desired width and height of the raster
 # @TODO: Habib: Replace the width and height with the actual values from the L2 file
-width = im_data.shape[1]
-height = im_data.shape[0]
+width = 519
+height = 275
 
 # Generate GCPs from the lat/lon arrays
 gcps = []
@@ -217,7 +218,7 @@ print('Longitude difference statistics:')
 print('Min:', np.min(lon_diff), 'Max:', np.max(lon_diff))
 
 # Use the transform to create or open a raster dataset
-fileName_tiff = os.path.splitext(fileName)[0] + '_%s' %angleIdx + '.tiff'
+fileName_tiff = os.path.splitext(fileName)[0] + '_%s' % angleIdx + '.tiff'
 
 # metadata for the raster
 metadata = {

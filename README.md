@@ -1,2 +1,2 @@
-# pace-harp2
-A variety of data processing/manipulation tools for netCDF &amp; GeoTIFF data formats.
+# NASA HARP2 - PACE
+A python web app built with dash & terracotta tile server for visualization of NASA HARP2 Polarimeter aerosol readings.

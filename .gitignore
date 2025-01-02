@@ -1,0 +1,8 @@
+venv/*
+*.grb2
+*.grb2.inv
+*.nc
+.idea/*
+*__pycache__**
+data/*
+*.nc # datasets
