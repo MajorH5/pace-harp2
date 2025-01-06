@@ -1,9 +1,10 @@
 from dash import dcc, html
 import dash_leaflet as dl
+import datetime
 from config import PARAMS
 
 cmaps = ["Viridis", "Spectral", "Greys"]
-lbl_map = dict(wspd="Wind speed", temp="Temperature")
+lbl_map = dict(wspd="550nm", temp="880nm")
 unit_map = dict(wspd="m/s", temp="°C")
 srng_map = dict(wspd=[0, 10], temp=[-89.3, 56.7])
 param0 = "temp"
@@ -12,12 +13,14 @@ srng0 = srng_map[param0]
 
 def data_controller():
     return html.Div(
-        style={"min-width": "200px"},
+        style={"min-width": "200px", "right": "10px"},
         children=[
+        html.H4("Parameters", style={"margin-bottom": "10px", "text-align": "center"}),
         html.Div("Date"),
         dcc.DatePickerSingle(
             id="date-picker",
-            date="2025-01-01",
+            # date="2025-01-01",
+            placeholder="Choose Date",
             display_format="YYYY-MM-DD",
             min_date_allowed="2024-12-01",
             max_date_allowed="2025-12-05",
@@ -28,7 +31,7 @@ def data_controller():
             }
         ),
         html.Div(style={"margin-top": "10px", "margin-bottom": "10px", "width": "100%", "height": "2px", "background-color": "rgba(0, 0, 0, 0.15)"}),
-        html.Div("Bands"),
+        html.Div("Wavelength"),
         dcc.Dropdown(id="dd_param", options=[dict(value=p, label=lbl_map[p]) for p in PARAMS], value=param0),
         html.Br(),
         html.Div("Colorscale"),

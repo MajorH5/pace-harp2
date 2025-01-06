@@ -13,8 +13,33 @@ from flask import Flask
 from config import TC_URL, GFS_KEY, PARAMS
 from terracotta_toolbelt import singleband_url, point_url
 
+from components.granule_data import granule_data
 from components.data_controller import data_controller
 from components.branding import branding
+
+geojson_data = {
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [-73.97, 40.77],
+                        [-73.98, 40.75],
+                        [-73.95, 40.74],
+                        [-73.96, 40.72],
+                        [-73.97, 40.77]
+                    ]
+                ]
+            },
+            "properties": {
+                "name": "Example Region"
+            }
+        }
+    ]
+}
 
 cmaps = ["Viridis", "Spectral", "Greys"]
 lbl_map = dict(wspd="Wind speed", temp="Temperature")
@@ -26,7 +51,7 @@ srng0 = srng_map[param0]
 # App Stuff.
 server = Flask(__name__)
 app = dash.Dash(__name__, server=server)
-app.title = "UMBC | PACE HARP2 Geospatial Data Explorer"
+app.title = "UMBC | Geospatial Data Explorer"
 app.layout = html.Div(
     children=[
     # Create the map itself.
@@ -35,7 +60,18 @@ app.layout = html.Div(
         dl.TileLayer(id="tc", opacity=0.5),
         dl.Colorbar(id="cbar", width=150, height=20, style={"margin-left": "40px"}, position="bottomleft"),
         dl.LayerGroup(id="layer-group"),
+        dl.GeoJSON(
+            id="geojson",
+            data=geojson_data,
+            hoverStyle={
+                "color": "#FF0000",  # Change color on hover
+                "weight": 5,  # Make the border thicker on hover
+                "fillOpacity": 0.5  # Change fill opacity on hover
+            },
+            children=dl.Tooltip("Hover to see details")
+        )
     ], style={"width": "100%", "height": "100%"}),
+    granule_data(),
     data_controller(),
     branding()
 ], style={"display": "grid", "width": "100%", "height": "100vh"})
@@ -64,7 +100,11 @@ whitelist_dates = [
     [Input("opacity", "value")]
 )
 def update_opacity(opacity):
-    return opacity
+    return [opacity]
+
+@app.callback([Input("geojson", "clickData")])
+def on_mouse_event(hoverData):
+    print("hover data: ", hoverData)
 
 
 @app.callback(
