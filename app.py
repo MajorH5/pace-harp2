@@ -13,6 +13,9 @@ from flask import Flask
 from config import TC_URL, GFS_KEY, PARAMS
 from terracotta_toolbelt import singleband_url, point_url
 
+from components.data_controller import data_controller
+from components.branding import branding
+
 cmaps = ["Viridis", "Spectral", "Greys"]
 lbl_map = dict(wspd="Wind speed", temp="Temperature")
 unit_map = dict(wspd="m/s", temp="°C")
@@ -23,7 +26,9 @@ srng0 = srng_map[param0]
 # App Stuff.
 server = Flask(__name__)
 app = dash.Dash(__name__, server=server)
-app.layout = html.Div(children=[
+app.title = "UMBC | PACE HARP2 Geospatial Data Explorer"
+app.layout = html.Div(
+    children=[
     # Create the map itself.
     dl.Map(id="map", center=[56, 10], zoom=7, children=[
         dl.TileLayer(),
@@ -31,36 +36,41 @@ app.layout = html.Div(children=[
         dl.Colorbar(id="cbar", width=150, height=20, style={"margin-left": "40px"}, position="bottomleft"),
         dl.LayerGroup(id="layer-group"),
     ], style={"width": "100%", "height": "100%"}),
-    # Create controller.
-    html.Div(
-        style={"min-width": "200px"},
-        children=[
-        html.Div("Parameter"),
-        dcc.Dropdown(id="dd_param", options=[dict(value=p, label=lbl_map[p]) for p in PARAMS], value=param0),
-        html.Br(),
-        html.Div("Colorscale"),
-        dcc.Dropdown(id="dd_cmap", options=[dict(value=c, label=c) for c in cmaps], value=cmap0),
-        html.Br(),
-        html.Div("Opacity"),
-        dcc.Slider(id="opacity", min=0, max=1, value=0.5, step=0.1, marks={0: "0", 0.5: "0.5", 1: "1"}),
-        html.Br(),
-        html.Div("Stretch range"),
-        dcc.RangeSlider(id="srng", min=srng0[0], max=srng0[1], value=srng0,
-                        marks={v: "{:.1f}".format(v) for v in srng0}),
-        html.Br(),
-        html.Div("Value @ click position"),
-        html.P(children="-", id="label")
-    ], className="info"),
+    data_controller(),
+    branding()
 ], style={"display": "grid", "width": "100%", "height": "100vh"})
 
 
-@app.callback(Output("tc", "opacity"), [Input("opacity", "value")])
+whitelist_dates = [
+    datetime.date(2025, 1, 5),
+    datetime.date(2025, 1, 10),
+    datetime.date(2025, 1, 15),
+    datetime.date(2025, 1, 20),
+]
+
+# @app.callback(
+#     Output("date-picker", "is_day_disabled"),
+#     Input("date-picker", "date"),
+# )
+# def disable_non_whitelisted_dates(selected_date):
+#     def is_disabled(date):
+#         date_obj = datetime.datetime.strptime(date, "%Y-%m-%d").date()
+#         return date_obj not in whitelist_dates
+
+#     return is_disabled
+
+@app.callback(
+    [Output("tc", "opacity")],
+    [Input("opacity", "value")]
+)
 def update_opacity(opacity):
     return opacity
 
 
-@app.callback([Output("srng", "min"), Output("srng", "max"), Output("srng", "value"), Output("srng", "marks")],
-              [Input("dd_param", "value")])
+@app.callback(
+    [Output("srng", "min"), Output("srng", "max"), Output("srng", "value"), Output("srng", "marks")],
+    [Input("dd_param", "value")]
+)
 def update_stretch_range(param):
     if not param:
         return PreventUpdate
@@ -68,9 +78,11 @@ def update_stretch_range(param):
     return srng[0], srng[1], srng, {v: "{:.1f}".format(v) for v in srng}
 
 
-@app.callback([Output("tc", "url"),
-               Output("cbar", "colorscale"), Output("cbar", "min"), Output("cbar", "max"), Output("cbar", "unit")],
-              [Input("dd_param", "value"), Input("dd_cmap", "value"), Input("srng", "value")])
+@app.callback(
+    [Output("tc", "url"), Output("cbar", "colorscale"),
+     Output("cbar", "min"), Output("cbar", "max"), Output("cbar", "unit")],
+    [Input("dd_param", "value"), Input("dd_cmap", "value"), Input("srng", "value")]
+)
 def update_url(param, cmap, srng):
     if not param or not cmap:
         raise PreventUpdate
@@ -115,6 +127,9 @@ def onclick(param, total_clicks, click_data):
     DUMMY_AEROSOL_VALUE = 42.3
     DUMMY_TEMPERATURE = 22.5  # in °C
     DUMMY_HUMIDITY = 65  # in %
+    
+    if click_data == None:
+        return "-", dl.Popup()
 
     lat, lon = click_data['latlng']['lat'], click_data['latlng']['lng']
 
