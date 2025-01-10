@@ -84,16 +84,16 @@ whitelist_dates = [
     datetime.date(2025, 1, 20),
 ]
 
-# @app.callback(
-#     Output("date-picker", "is_day_disabled"),
-#     Input("date-picker", "date"),
-# )
-# def disable_non_whitelisted_dates(selected_date):
-#     def is_disabled(date):
-#         date_obj = datetime.datetime.strptime(date, "%Y-%m-%d").date()
-#         return date_obj not in whitelist_dates
+@app.callback(
+    Output("date-picker", "is_day_disabled"),
+    Input("date-picker", "date"),
+)
+def disable_non_whitelisted_dates(selected_date):
+    def is_disabled(date):
+        date_obj = datetime.datetime.strptime(date, "%Y-%m-%d").date()
+        return date_obj not in whitelist_dates
 
-#     return is_disabled
+    return is_disabled
 
 @app.callback(
     [Output("tc", "opacity")],

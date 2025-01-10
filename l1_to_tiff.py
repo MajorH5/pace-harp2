@@ -6,7 +6,10 @@ from rasterio.transform import from_gcps, from_origin, xy
 from rasterio.control import GroundControlPoint as GCP
 from pyresample import image, geometry, kd_tree
 from netCDF4 import Dataset
-from nasa_pace_data_reader import L1, plot
+from nasa_pace_data_reader import L1_AH2 as L1
+
+import warnings
+warnings.filterwarnings("ignore")
 
 def resampleData(source_lats, source_lons, target_lats, target_lons,
                  source_data, max_radius, method = 'kd_tree_gauss',
@@ -74,57 +77,64 @@ def resampleData(source_lats, source_lons, target_lats, target_lons,
    
     return result
 
-import_file = "./PACE_HARP2.20240523T003106.L1C.V2.5km.nc"
-export_file = "result.tiff"
+def l1c_to_tiff(import_file, export_file, l1_type="L1C"):
+    l1_reader = None
 
-l1_reader = L1.L1C()
-l1_data = l1_reader.read(import_file)
+    if l1_type == "L1C":
+        l1_reader = L1.L1C()
+    elif l1_type == "L1B":
+        l1_reader = L1.L1B()
+    else:
+        raise Exception(f"l1c_to_tiff: Unknown L1 file type '{l1_type}'.")
 
-# extract all related netcdf data
-original_latitude = l1_data["latitude"]
-original_longitude = l1_data["longitude"]
-width = original_latitude.shape[0]
-height = original_latitude.shape[1]
-image_data = l1_data['i'][:, :, 0, 0]
+    l1_data = l1_reader.read(import_file)
 
-# use an array of Ground Control Points to create "anchors"
-# by which we can reproject the data by
-gcps = [
-    # top-left corner
-    GCP(row=0, col=0, x=original_longitude[0, 0], y=original_latitude[0, 0]),
-    # top-right corner
-    GCP(row=0, col=width - 1, x=original_longitude[0, -1], y=original_latitude[0, -1]),
-    # bottom-left corner
-    GCP(row=height - 1, col=0, x=original_longitude[-1, 0], y=original_latitude[-1, 0]),
-    # bottom-right corner
-    GCP(row=height - 1, col=width - 1, x=original_longitude[-1, -1], y=original_latitude[-1, -1]),
-]
-transform = from_gcps(gcps)
+    # extract all related netcdf data
+    original_latitude = l1_data["latitude"]
+    original_longitude = l1_data["longitude"]
+    image_data = l1_data['i'][:, :, 0, 0]
 
-rows, cols = np.meshgrid(np.arange(height), np.arange(width), indexing="ij")
-xs, ys = xy(transform, rows.flatten(), cols.flatten())
+    width = original_latitude.shape[0]
+    height = original_latitude.shape[1]
 
-transformed_latitude = np.array(xs).reshape((height, width))
-transformed_longitude = np.array(ys).reshape((height, width))
+    # use an array of Ground Control Points to create "anchors"
+    # by which we can reproject the data by
+    gcps = [
+        # top-left corner
+        GCP(row=0, col=0, x=original_longitude[0, 0], y=original_latitude[0, 0]),
+        # top-right corner
+        GCP(row=0, col=width - 1, x=original_longitude[0, -1], y=original_latitude[0, -1]),
+        # bottom-left corner
+        GCP(row=height - 1, col=0, x=original_longitude[-1, 0], y=original_latitude[-1, 0]),
+        # bottom-right corner
+        GCP(row=height - 1, col=width - 1, x=original_longitude[-1, -1], y=original_latitude[-1, -1]),
+    ]
+    transform = from_gcps(gcps)
 
-metadata = {
-    "driver": "GTiff",
-    "height": height,
-    "width": width,
-    "count": 1,
-    "dtype": image_data.dtype,
-    "crs": "EPSG:4326",
-    "transform": transform,
-}
+    rows, cols = np.meshgrid(np.arange(height), np.arange(width), indexing="ij")
+    xs, ys = xy(transform, rows.flatten(), cols.flatten())
 
-with rasterio.open(export_file, "w", **metadata) as dataset:
+    transformed_latitude = np.array(xs).reshape((height, width))
+    transformed_longitude = np.array(ys).reshape((height, width))
 
-    image_data = resampleData(original_latitude, original_longitude, 
-                              transformed_latitude, transformed_longitude,
-                              image_data, max_radius=8000, method='kd_tree_gauss')
+    metadata = {
+        "driver": "GTiff",
+        "height": height,
+        "width": width,
+        "count": 1,
+        "dtype": image_data.dtype,
+        "crs": "EPSG:4326",
+        "transform": transform,
+    }
 
-    try:
-        dataset.write(image_data, 1)
-        print("File has been successfully exported as: %s" % export_file)
-    except Exception as e:
-        print("An error occured while writing to file:\n\t%s" % e)
+    with rasterio.open(export_file, "w", **metadata) as dataset:
+
+        image_data = resampleData(original_latitude, original_longitude, 
+                                transformed_latitude, transformed_longitude,
+                                image_data, max_radius=8000, method='nearest_neighbor')
+
+        try:
+            dataset.write(image_data, 1)
+            print("File has been successfully exported as: %s" % export_file)
+        except Exception as e:
+            print("An error occured while writing to file:\n\t%s" % e)

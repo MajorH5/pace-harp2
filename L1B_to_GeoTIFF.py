@@ -9,7 +9,8 @@ except:
     print('Pyresample package not installed')
 from netCDF4 import Dataset
 
-from nasa_pace_data_reader import L1, plot
+# from nasa_pace_data_reader import L1, plot
+from nasa_pace_data_reader import L1_AH2 as L1
 
 # suppress warnings
 import warnings
@@ -131,7 +132,7 @@ def readOCI_l1b(fileName):
     return lat, lon, rhot, solar_irradiance, wavelength
 
 # Location of the file
-fileName = './PACE_HARP2.20240523T003106.L1C.V2.5km.nc'
+fileName = './PACEPAX-AH2MAP-L1C_ER2_20240910T175007_RA.nc'
 
 # Instrument
 instrument = 'HARP2'
@@ -146,8 +147,12 @@ if instrument == 'HARP2':
     l1b_dict = l1b.read(fileName)
     var2plot = 'i'
     angleIdx = 35
-    print(l1b_dict['latitude'].shape)
-    im_data = l1b_dict[var2plot][:,:]
+    # TODO: combine rgb values into single image
+    # angleIndex(40) - Red
+    # angleIndex(4) - Green
+    # angleIndex(84) - Blue
+    # angleIndex(74) - Near Infrared
+    im_data = l1b_dict[var2plot][:,:,40,0] # For L1C there are 3-dimensions, select 1 band
     im_lat = l1b_dict['latitude'][:,:]
     im_lon = l1b_dict['longitude'][:,:]
 
@@ -173,9 +178,8 @@ elif instrument == 'OCI':
 
 
 # Define the desired width and height of the raster
-# @TODO: Habib: Replace the width and height with the actual values from the L2 file
-width = 519
-height = 275
+width = im_data.shape[1]
+height = im_data.shape[0]
 
 # Generate GCPs from the lat/lon arrays
 gcps = []
@@ -236,10 +240,11 @@ metadata = {
 with rasterio.open(fileName_tiff, 'w', **metadata) as dst:
 
     # interpolate im_data to geTiff lat-lon grid using pyresample
-    im_data_new = resampleData(im_lat, im_lon, lat_grid, lon_grid, im_data, max_radius=8000, method='kd_tree_gauss')
+    im_data_new = resampleData(im_lat, im_lon, lat_grid, lon_grid, im_data, max_radius=8000, method='nearest_neighbor')
 
     # Write your data to the raster
     try:
+        # TODO: check second argument of dst.write
         dst.write(im_data_new, 1)
 
         # file written successfully

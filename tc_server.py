@@ -20,6 +20,7 @@ def init_db(keys, key_descriptions=None, nuke=False):
         for entry in [entry for entry in os.listdir(GEOTIFF_DIR) if entry[-5:] == ".tiff"]:
             tiff_path = os.path.join(GEOTIFF_DIR, entry)
             tiff_dict = {keys[i]: value for i, value in enumerate(entry[:-5].split("."))}
+            print(tiff_dict, tiff_path)
             driver.insert(tiff_dict, tiff_path)
 
 
