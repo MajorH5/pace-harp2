@@ -73,16 +73,17 @@ def resampleData(source_lats, source_lons, target_lats, target_lons,
         result = kd_tree.resample_gauss(swath_def, source_data, grid_def, radius_of_influence=max_radius, sigmas = max_radius/3)
        
     # flaging the unknown data points to nans
-    result[result < 1e-5] = np.nan
+    # result[result < 1e-3] = np.nan
+    result[result > 1e19] = np.nan
    
     return result
 
-def l1c_to_tiff(import_file, export_file, l1_type="L1C"):
+def l1_to_tiff(import_file, export_file, l1_type="l1c", angle_index=40):
     l1_reader = None
 
-    if l1_type == "L1C":
+    if l1_type.lower() == "l1c":
         l1_reader = L1.L1C()
-    elif l1_type == "L1B":
+    elif l1_type.lower() == "l1b":
         l1_reader = L1.L1B()
     else:
         raise Exception(f"l1c_to_tiff: Unknown L1 file type '{l1_type}'.")
@@ -92,7 +93,7 @@ def l1c_to_tiff(import_file, export_file, l1_type="L1C"):
     # extract all related netcdf data
     original_latitude = l1_data["latitude"]
     original_longitude = l1_data["longitude"]
-    image_data = l1_data['i'][:, :, 0, 0]
+    image_data = l1_data['i'][:, :, angle_index, 0]
 
     width = original_latitude.shape[0]
     height = original_latitude.shape[1]
@@ -114,8 +115,8 @@ def l1c_to_tiff(import_file, export_file, l1_type="L1C"):
     rows, cols = np.meshgrid(np.arange(height), np.arange(width), indexing="ij")
     xs, ys = xy(transform, rows.flatten(), cols.flatten())
 
-    transformed_latitude = np.array(xs).reshape((height, width))
-    transformed_longitude = np.array(ys).reshape((height, width))
+    transformed_longitude = np.array(xs).reshape((height, width))
+    transformed_latitude = np.array(ys).reshape((height, width))
 
     metadata = {
         "driver": "GTiff",
@@ -131,10 +132,12 @@ def l1c_to_tiff(import_file, export_file, l1_type="L1C"):
 
         image_data = resampleData(original_latitude, original_longitude, 
                                 transformed_latitude, transformed_longitude,
-                                image_data, max_radius=8000, method='nearest_neighbor')
+                                image_data, max_radius=300, method='nearest_neighbor')
 
         try:
             dataset.write(image_data, 1)
             print("File has been successfully exported as: %s" % export_file)
         except Exception as e:
             print("An error occured while writing to file:\n\t%s" % e)
+
+# l1c_to_tiff("granules/PACEPAX-AH2MAP-L1C_ER2_20240910T175007_RA.nc", "result.tiff")

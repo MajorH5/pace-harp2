@@ -6,7 +6,7 @@ from config import PARAMS
 cmaps = ["Viridis", "Spectral", "Greys"]
 lbl_map = dict(wspd="550nm", temp="880nm")
 unit_map = dict(wspd="m/s", temp="°C")
-srng_map = dict(wspd=[0, 10], temp=[-89.3, 56.7])
+srng_map = dict(wspd=[0, 300], temp=[0, 300])
 param0 = "temp"
 cmap0 = "Viridis"
 srng0 = srng_map[param0]
@@ -22,14 +22,15 @@ def data_controller():
             # date="2025-01-01",
             placeholder="Choose Date",
             display_format="YYYY-MM-DD",
-            min_date_allowed="2024-12-01",
-            max_date_allowed="2025-12-05",
             style={
                 "display": "flex",
                 "align-items": "center",
                 "justify-content": "center"
-            }
+            },
+            # disabled=True
         ),
+        html.Div("Granule"),
+        dcc.Dropdown(id="granules", disabled=True),
         html.Div(style={"margin-top": "10px", "margin-bottom": "10px", "width": "100%", "height": "2px", "background-color": "rgba(0, 0, 0, 0.15)"}),
         html.Div("Wavelength"),
         dcc.Dropdown(id="dd_param", options=[dict(value=p, label=lbl_map[p]) for p in PARAMS], value=param0),

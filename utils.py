@@ -9,7 +9,7 @@ def get_date_range(available):
     """
     min = available[0]
     max = available[0]
-    unavailble = []
+    unavailable = []
 
     for day in available:
         if day < min:
@@ -20,12 +20,14 @@ def get_date_range(available):
     current = min
 
     while current < max:
-        if current not in available:
-            unavailble.append(current)
+        available_dates = [dt.date() for dt in available]
+
+        if current.date() not in available_dates:
+            unavailable.append(current)
         
         current += timedelta(days=1)
 
-    return min, max, unavailble
+    return min, max, unavailable
 
 def extract_granule_metadata(filename):
     """
@@ -41,7 +43,8 @@ def extract_granule_metadata(filename):
         return None
     
     year, month, day, hour, minute, second = result.groups()
-    date = datetime.strptime(f"{year}-{month}-{day}-{hour}-{minute}-{second}", "%Y-%m-%d-%H-%M-%S")
+    # date = datetime.strptime(f"{year}-{month}-{day}-{hour}-{minute}-{second}", "%Y-%m-%d-%H-%M-%S")
+    date = f"{year}-{month}-{day}_{hour}:{minute}:{second}"
 
     instrument_data = filename.split("_")[0]
 

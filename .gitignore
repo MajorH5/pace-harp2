@@ -7,3 +7,4 @@ venv/*
 data/*
 *.nc # datasets
 *.tiff
+*.sqlite
