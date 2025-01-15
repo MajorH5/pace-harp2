@@ -82,9 +82,11 @@ def rgb_url(api_url, *keys, red_key, green_key, blue_key):
         given the base keys, and RGB channel keys
     """
     url = urljoin(api_url, "rgb", *keys, "{z}/{x}/{y}.png")
-    
-    return f"{url}?{urllib.parse.urlencode({
+
+    lookup = {
         "r": red_key,
         "g": green_key,
         "b": blue_key 
-    })}"
+    }
+    
+    return f"{url}?{urllib.parse.urlencode(lookup)}"
