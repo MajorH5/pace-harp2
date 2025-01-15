@@ -4,9 +4,13 @@ import terracotta
 from terracotta.server import create_app
 from terracotta import update_settings
 from utils import extract_granule_metadata
-from l1_to_tiff import l1_to_tiff
+from l1_to_tiff import l1_to_tiff, read_l1_data
 
-AH2_PARAMS = ["instrument", "date",]
+CHANNEL_INDEXES = {
+    "red": 40, "green": 4,
+    "blue": 84, "infrared": 74
+}
+AH2_PARAMS = ["instrument", "date", "channel"]
 DB_NAME = "tc_db.sqlite"
 DB_PATH = "example"
 SAMPLES_PATH = "granules"
@@ -40,31 +44,47 @@ class PACEHARP2TCServer:
         self._server.run(port=port, host=host, threaded=False)
 
     def load_from_directory(self, data_path):
-        for entry in os.listdir(data_path):
-            if entry.split(".")[-1] == "nc":
-                path = os.path.join(data_path, entry)
-                tc_server.serve_granule(path)
+        entries = [e for e in os.listdir(data_path) if e.split(".")[-1] == "nc"]
+
+        print(f"PACEHARP2TCServer.load_from_directory: loading {len(entries)} files from {data_path}")
+
+        for i in range(len(entries)):
+            print(f"PACEHARP2TCServer.load_from_directory: file {i} of {len(entries)}")
+            entry = entries[i]
+            path = os.path.join(data_path, entry)
+            tc_server.serve_granule(path)
 
     def serve_granule(self, nc_path):
         filename = os.path.basename(nc_path)
-        print(f"serve_granule: loading data from {filename}")
 
         # convert netCDF -> GeoTIFF
         prefix, _ = os.path.splitext(filename)
-        tiff_path = os.path.join(self._driver_path, prefix + ".tiff")
+        os.makedirs(os.path.join(self._driver_path, prefix), exist_ok=True)
 
-        print(f"serve_granule: converting {filename} netCDF -> GeoTIFF")
-        l1_to_tiff(nc_path, tiff_path)
+        print(f"PACEHARP2TCServer.serve_granule: converting {filename} netCDF -> GeoTIFF")
 
-        metadata = extract_granule_metadata(filename)
+        channels = CHANNEL_INDEXES.keys()
 
-        if metadata == None:
-            raise Exception(f"paceharp2tcserver.serve_granule: File '{filename}' has an invalid naming convention.")
-        
-        # place into tc driver
-        with self._driver.connect():
-            self._driver.insert(metadata, tiff_path)
-            print(f"serve_granule: {filename} has been successfully inserted", metadata, tiff_path)
+        # TODO: change l1c constant to be based upon file name
+        #       once we are sure file naming is consistent
+        l1_data = read_l1_data(nc_path, "l1c")
+        l1_meta = extract_granule_metadata(filename)
+
+        for channel in channels:
+            tiff_path = os.path.join(self._driver_path, prefix, f"{channel}-channel.tiff")
+
+            l1_to_tiff(l1_data, tiff_path, CHANNEL_INDEXES[channel])
+
+            metadata = l1_meta.copy()
+            metadata["channel"] = channel
+
+            if metadata == None:
+                raise Exception(f"PACEHARP2TCServer.serve_granule: File '{filename}' has an unexpected naming convention.")
+            
+            # place into tc driver
+            with self._driver.connect():
+                self._driver.insert(metadata, tiff_path)
+                print(f"PACEHARP2TCServer.serve_granule: {channel} channel has been successfully inserted")
 
 if __name__ == "__main__":
     tc_server = PACEHARP2TCServer(DB_PATH)

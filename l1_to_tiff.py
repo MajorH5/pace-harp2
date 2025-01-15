@@ -78,7 +78,7 @@ def resampleData(source_lats, source_lons, target_lats, target_lons,
    
     return result
 
-def l1_to_tiff(import_file, export_file, l1_type="l1c", angle_index=40):
+def read_l1_data (import_file, l1_type="l1c"):
     l1_reader = None
 
     if l1_type.lower() == "l1c":
@@ -89,6 +89,11 @@ def l1_to_tiff(import_file, export_file, l1_type="l1c", angle_index=40):
         raise Exception(f"l1c_to_tiff: Unknown L1 file type '{l1_type}'.")
 
     l1_data = l1_reader.read(import_file)
+
+    return l1_data
+
+def l1_to_tiff(l1_data, export_file, angle_index=40):
+
 
     # extract all related netcdf data
     original_latitude = l1_data["latitude"]
@@ -136,7 +141,6 @@ def l1_to_tiff(import_file, export_file, l1_type="l1c", angle_index=40):
 
         try:
             dataset.write(image_data, 1)
-            print("File has been successfully exported as: %s" % export_file)
         except Exception as e:
             print("An error occured while writing to file:\n\t%s" % e)
 

@@ -2,7 +2,7 @@ import json
 import random
 import requests
 from datetime import datetime
-from utils import get_date_range, get_average_of_coordinates
+from utils import get_date_range, get_average_of_coordinates, rgb_url
 import dash
 from dash import html
 from dash import dcc
@@ -108,29 +108,41 @@ def update_opacity(opacity):
      Output("srng", "marks")
     ],
     [Input("date-picker", "date"), Input("granules", "value"), Input("dd_cmap", "value"), Input("srng", "value"),
-     State("srng", "min"), State("srng", "max")]
+     State("srng", "min"), State("srng", "max"), Input("dd_param", "value")]
 )
-def update_url(date, time, cmap, srng, curr_min, curr_max):
+def update_url(date, time, cmap, srng, curr_min, curr_max, channel):
     INSTRUMENT = "PACEPAX-AH2MAP-L1C"
 
     if not date or not cmap or not time:
         raise PreventUpdate
 
     try:
+        query_channel = channel
+        is_combined_rgb = channel == "combined (rgb)"
+
+        if is_combined_rgb:
+            # since we are combing values from multiple channels
+            # it does not make sense to respect stretch range since
+            # each channel has its own range. we can default to red
+            query_channel = "red"
+
         formatted_date = f"{date}_{time}"
 
-        result = requests.get(f"{TC_URL}/metadata/{INSTRUMENT}/{formatted_date}")
+        result = requests.get(f"{TC_URL}/metadata/{INSTRUMENT}/{formatted_date}/{query_channel}")
         metadata = result.json()
         
         value_range = metadata["range"]
         mean = metadata["mean"]
         stdev = metadata["stdev"]
 
-        # TODO: min & max can be accessed via value_range
-        #       however large changes in value across dataset
-        #       in few areas is ruining the range causing it to
-        #       be unecesarily large, fix?
-        min, max = 0, mean + stdev
+        if is_combined_rgb:
+            min, max = 0, 0
+        else:
+            # TODO: min & max can be accessed via value_range
+            #       however large changes in value across dataset
+            #       in few areas is ruining the range causing it to
+            #       be unecesarily large, fix?
+            min, max = 0, mean + stdev
 
         bounds = metadata["convex_hull"]["coordinates"][0]
         zoom_point = get_average_of_coordinates(bounds)
@@ -146,7 +158,6 @@ def update_url(date, time, cmap, srng, curr_min, curr_max):
         }
 
         new_stretch_range = srng
-
         is_new_range = curr_min != min or curr_max != max
 
         if is_new_range:
@@ -155,10 +166,13 @@ def update_url(date, time, cmap, srng, curr_min, curr_max):
 
         marks = { v: "{:.1f}".format(v) for v in new_stretch_range }
 
-        url = singleband_url(TC_URL, INSTRUMENT, formatted_date, colormap=cmap.lower(), stretch_range=new_stretch_range)
+        if is_combined_rgb:
+            url = rgb_url(TC_URL, INSTRUMENT, formatted_date,red_key="red", green_key="green", blue_key="blue")
+        else:
+            url = singleband_url(TC_URL, INSTRUMENT, formatted_date, channel, colormap=cmap.lower(), stretch_range=new_stretch_range)
 
         # two min-max exports, one for colorbar, one for slider
-        return url, cmap, min, max, "radiance", viewport_status, False, min, max, new_stretch_range, marks
+        return url, cmap, min, max, "radiance", viewport_status, is_combined_rgb, min, max, new_stretch_range, marks
     except:
         print(f"center_bounds: failed to retrieve metadata for {INSTRUMENT}/{formatted_date}")
         raise PreventUpdate

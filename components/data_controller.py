@@ -27,7 +27,7 @@ def data_controller():
         dcc.Dropdown(id="granules", disabled=True),
         html.Div(style={"margin-top": "10px", "margin-bottom": "10px", "width": "100%", "height": "2px", "background-color": "rgba(0, 0, 0, 0.15)"}),
         html.Div("Channels"),
-        dcc.Dropdown(id="dd_param", options=[dict(value=c, label=c) for c in chnls], value=chnls[0]),
+        dcc.Dropdown(id="dd_param", options=[dict(value=c.lower(), label=c) for c in chnls], value=chnls[0].lower()),
         html.Br(),
         html.Div("Colorscale"),
         dcc.Dropdown(id="dd_cmap", options=[dict(value=c, label=c) for c in cmaps], value=cmaps[0]),

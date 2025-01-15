@@ -1,4 +1,6 @@
 from datetime import datetime, timedelta
+from terracotta_toolbelt import urljoin
+import urllib.parse
 import re
 
 def get_date_range(available):
@@ -73,3 +75,16 @@ def get_average_of_coordinates(points):
 
     total_points = len(points)
     return [x_sum / total_points, y_sum / total_points]
+
+def rgb_url(api_url, *keys, red_key, green_key, blue_key):
+    """
+        Returns a terracotta rgb server end point url
+        given the base keys, and RGB channel keys
+    """
+    url = urljoin(api_url, "rgb", *keys, "{z}/{x}/{y}.png")
+    
+    return f"{url}?{urllib.parse.urlencode({
+        "r": red_key,
+        "g": green_key,
+        "b": blue_key 
+    })}"
