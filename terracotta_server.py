@@ -12,7 +12,7 @@ CHANNEL_INDEXES = {
 }
 AH2_PARAMS = ["instrument", "date", "channel"]
 DB_NAME = "tc_db.sqlite"
-DB_PATH = "example"
+DB_PATH = "database"
 SAMPLES_PATH = "granules"
 HOST = "localhost"
 PORT = "5000"
