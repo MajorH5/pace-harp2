@@ -70,6 +70,3 @@ if __name__ == "__main__":
     tc_server = PACEHARP2TCServer(DB_PATH)
     tc_server.load_from_directory(SAMPLES_PATH)
     tc_server.run(PORT, HOST)
-
-
-# TODO: fix yellow coloring in projection (no-data areas) 

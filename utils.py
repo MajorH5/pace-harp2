@@ -55,3 +55,21 @@ def extract_granule_metadata(filename):
         "instrument": instrument_data,
         "date": date
     }
+
+def get_average_of_coordinates(points):
+    """
+        Given a list of points in the format:
+            [[x1, y1], [x2, y2], [[x3, y3], ...]]
+        Returns a point that represents the average
+        of all the listed points
+    """
+    
+    x_sum = 0
+    y_sum = 0
+
+    for point in points:
+        x_sum += point[0]
+        y_sum += point[1]
+
+    total_points = len(points)
+    return [x_sum / total_points, y_sum / total_points]

@@ -2,7 +2,7 @@ import json
 import random
 import requests
 from datetime import datetime
-from utils import get_date_range
+from utils import get_date_range, get_average_of_coordinates
 import dash
 from dash import html
 from dash import dcc
@@ -46,7 +46,8 @@ app.layout = html.Div(
 )
 def disable_nodata_days(_, selected_date):
     try:
-        result = requests.get(f"{TC_URL}/datasets")
+        print("disable_nodata_days: fetching datasets...")
+        result = requests.get(f"{TC_URL}/datasets", timeout=10)
         datasets = result.json()["datasets"]
         total_dates = []
 
@@ -74,6 +75,7 @@ def disable_nodata_days(_, selected_date):
                     time = str(granule).split(" ")[-1]
                     granules_on_date.append(time)
 
+        print("disable_nodata_days: computed new date ranges")
         return unavailable, min, max, False, "Choose Date", granules_on_date, False
     except:
         print("disable_nodata_days: failed to retrieve datasets!")
@@ -86,57 +88,80 @@ def disable_nodata_days(_, selected_date):
 def update_opacity(opacity):
     return [opacity]
 
-@app.callback(
-    [Output("srng", "min"), Output("srng", "max"), Output("srng", "value"), Output("srng", "marks")],
-    [Input("dd_param", "value")]
-)
-def update_stretch_range(param):
-    if not param:
-        return PreventUpdate
-    srng = srng_map[param]
-    return srng[0], srng[1], srng, {v: "{:.1f}".format(v) for v in srng}
+# @app.callback(
+#     [Output("srng", "min"), Output("srng", "max"), Output("srng", "value"), Output("srng", "marks")],
+#     [Input("dd_param", "value")]
+# )
+# def update_stretch_range(param):
+#     if not param:
+#         return PreventUpdate
+#     srng = srng_map[param]
+#     return srng[0], srng[1], srng, {v: "{:.1f}".format(v) for v in srng}
 
 @app.callback(
     [Output("tc", "url"), Output("cbar", "colorscale"),
-     Output("cbar", "min"), Output("cbar", "max"), Output("cbar", "unit"),
-     Output("map", "viewport")],
-    [Input("date-picker", "date"), Input("granules", "value"), Input("dd_cmap", "value"), Input("srng", "value")]
+     Output("cbar", "min"), Output("cbar", "max"),
+    #  Output("srng", "min"), Output("srng", "max"),
+     Output("cbar", "unit"), Output("map", "viewport"),
+     Output("srng", "disabled"), Output("srng", "min"),
+     Output("srng", "max"), Output("srng", "value"),
+     Output("srng", "marks")
+    ],
+    [Input("date-picker", "date"), Input("granules", "value"), Input("dd_cmap", "value"), Input("srng", "value"),
+     State("srng", "min"), State("srng", "max")]
 )
-def update_url(date, time, cmap, srng):
-    # TODO: make this dynamic (i radiance)
-    VALUE_MIN = 0
-    VALUE_MAX = 300
+def update_url(date, time, cmap, srng, curr_min, curr_max):
     INSTRUMENT = "PACEPAX-AH2MAP-L1C"
 
     if not date or not cmap or not time:
         raise PreventUpdate
 
-    srng = [float(item) for item in srng]
-
-    formatted_date = f"{date}_{time}"
-
-    url = singleband_url(TC_URL, INSTRUMENT, formatted_date, colormap=cmap.lower(), stretch_range=srng)
-    viewport_status = {}
-
-    print(url)
-
     try:
+        formatted_date = f"{date}_{time}"
+
         result = requests.get(f"{TC_URL}/metadata/{INSTRUMENT}/{formatted_date}")
         metadata = result.json()
         
-        zoom_point = metadata["convex_hull"]["coordinates"][0][0]
+        value_range = metadata["range"]
+        mean = metadata["mean"]
+        stdev = metadata["stdev"]
+
+        # TODO: min & max can be accessed via value_range
+        #       however large changes in value across dataset
+        #       in few areas is ruining the range causing it to
+        #       be unecesarily large, fix?
+        min, max = 0, mean + stdev
+
+        bounds = metadata["convex_hull"]["coordinates"][0]
+        zoom_point = get_average_of_coordinates(bounds)
 
         temp = zoom_point[0]
         zoom_point[0] = zoom_point[1]
         zoom_point[1] = temp
 
-        viewport_status["center"] = zoom_point
-        viewport_status["transition"] = "flyTo"
-        viewport_status["zoom"] = 10
+        viewport_status = {
+            "center": zoom_point,
+            "transition": "flyTo",
+            "zoom": 10
+        }
+
+        new_stretch_range = srng
+
+        is_new_range = curr_min != min or curr_max != max
+
+        if is_new_range:
+            # just use our own computed min, max
+            new_stretch_range = [min, max]
+
+        marks = { v: "{:.1f}".format(v) for v in new_stretch_range }
+
+        url = singleband_url(TC_URL, INSTRUMENT, formatted_date, colormap=cmap.lower(), stretch_range=new_stretch_range)
+
+        # two min-max exports, one for colorbar, one for slider
+        return url, cmap, min, max, "radiance", viewport_status, False, min, max, new_stretch_range, marks
     except:
         print(f"center_bounds: failed to retrieve metadata for {INSTRUMENT}/{formatted_date}")
-
-    return url, cmap, VALUE_MIN, VALUE_MAX, "°C", viewport_status
+        raise PreventUpdate
 
 if __name__ == '__main__':
-    app.run_server(port=8050)
+    app.run_server(port=8050, debug=True)

@@ -73,8 +73,8 @@ def resampleData(source_lats, source_lons, target_lats, target_lons,
         result = kd_tree.resample_gauss(swath_def, source_data, grid_def, radius_of_influence=max_radius, sigmas = max_radius/3)
        
     # flaging the unknown data points to nans
-    # result[result < 1e-3] = np.nan
-    result[result > 1e19] = np.nan
+    mask = np.ma.getmask(result)
+    result[mask] = np.nan
    
     return result
 
