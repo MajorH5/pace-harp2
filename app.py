@@ -32,7 +32,7 @@ app.layout = html.Div(
         dl.Colorbar(id="cbar", width=150, height=20, style={"margin-left": "40px"}, position="bottomleft"),
         dl.LayerGroup(id="layer-group")
     ], style={"width": "100%", "height": "100%"}),
-    granule_data(),
+    # granule_data(),
     data_controller(),
     branding()
 ], style={"display": "grid", "width": "100%", "height": "100vh"})
