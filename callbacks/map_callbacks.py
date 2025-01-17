@@ -23,7 +23,8 @@ def register_map_callbacks(app):
             Output("srng", "min"),
             Output("srng", "max"),
             Output("srng", "value"),
-            Output("srng", "marks")
+            Output("srng", "marks"),
+            Output("dd_cmap", "disabled")
         ],
         [
             Input("date-picker", "date"),
@@ -96,7 +97,7 @@ def register_map_callbacks(app):
                 ), stretch_range=new_stretch_range)
 
             # two min-max exports, one for colorbar, one for slider
-            return url, cmap, min, max, "radiance", viewport_status, False, min, max, new_stretch_range, marks
+            return url, cmap, min, max, "radiance", viewport_status, False, min, max, new_stretch_range, marks, is_combined_rgb
         except:
             print(f"center_bounds: failed to retrieve metadata for {
                   INSTRUMENT}/{formatted_date}")
