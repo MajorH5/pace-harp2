@@ -46,9 +46,10 @@ def register_ui_callbacks(app):
 
             if selected_date != None:
                 for granule in total_dates:
-                    if datetime.fromisoformat(selected_date).date() == granule.date():
-                        # get time component only
-                        time = str(granule).split(" ")[-1]
+                    # get time component only
+                    time = str(granule).split(" ")[-1]
+
+                    if datetime.fromisoformat(selected_date).date() == granule.date() and time not in granules_on_date:
                         granules_on_date.append(time)
 
             print("disable_nodata_days: computed new date ranges")

@@ -7,23 +7,35 @@ from utils import get_average_of_coordinates, rgb_url
 from terracotta_toolbelt import singleband_url
 from config import TC_URL
 
+INSTRUMENT = "PACEPAX-AH2MAP-L1C"
+
 
 def register_map_callbacks(app):
     @app.callback(
-        [Output("tc", "url"), Output("cbar", "colorscale"),
-         Output("cbar", "min"), Output("cbar", "max"),
-         #  Output("srng", "min"), Output("srng", "max"),
-         Output("cbar", "unit"), Output("map", "viewport"),
-         Output("srng", "disabled"), Output("srng", "min"),
-         Output("srng", "max"), Output("srng", "value"),
-         Output("srng", "marks")
-         ],
-        [Input("date-picker", "date"), Input("granules", "value"), Input("dd_cmap", "value"), Input("srng", "value"),
-         State("srng", "min"), State("srng", "max"), Input("dd_param", "value")]
+        [
+            Output("tc", "url"),
+            Output("cbar", "colorscale"),
+            Output("cbar", "min"),
+            Output("cbar", "max"),
+            Output("cbar", "unit"),
+            Output("map", "viewport"),
+            Output("srng", "disabled"),
+            Output("srng", "min"),
+            Output("srng", "max"),
+            Output("srng", "value"),
+            Output("srng", "marks")
+        ],
+        [
+            Input("date-picker", "date"),
+            Input("granules", "value"),
+            Input("dd_cmap", "value"),
+            Input("srng", "value"),
+            State("srng", "min"),
+            State("srng", "max"),
+            Input("dd_param", "value")
+        ]
     )
     def configure_map_properties(date, time, cmap, srng, curr_min, curr_max, channel):
-        INSTRUMENT = "PACEPAX-AH2MAP-L1C"
-
         if not date or not cmap or not time:
             raise PreventUpdate
 
@@ -43,7 +55,6 @@ def register_map_callbacks(app):
                 f"{TC_URL}/metadata/{INSTRUMENT}/{formatted_date}/{query_channel}")
             metadata = result.json()
 
-            value_range = metadata["range"]
             mean = metadata["mean"]
             stdev = metadata["stdev"]
 
@@ -59,9 +70,8 @@ def register_map_callbacks(app):
             bounds = metadata["convex_hull"]["coordinates"][0]
             zoom_point = get_average_of_coordinates(bounds)
 
-            temp = zoom_point[0]
-            zoom_point[0] = zoom_point[1]
-            zoom_point[1] = temp
+            # swap lat, long
+            zoom_point[0], zoom_point[1] = zoom_point[1], zoom_point[0]
 
             viewport_status = {
                 "center": zoom_point,
