@@ -1,1 +1,0 @@
-place L1C data in this directory before running tc server

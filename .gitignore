@@ -1,10 +1,10 @@
+# python cache files and virtual environment
 venv/*
-*.grb2
-*.grb2.inv
-*.nc
-.idea/*
 *__pycache__**
-data/*
-*.nc # datasets
+
+# datasets
+*.nc
 *.tiff
+
+# terracotta server db
 *.sqlite

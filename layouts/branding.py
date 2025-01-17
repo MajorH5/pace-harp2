@@ -1,6 +1,11 @@
 from dash import html
 
-def branding():
+
+def create_branding():
+    """
+    Creates the stylized branding floating logos
+    """
+
     return html.Div(
         id="branding-container",
         style={
@@ -21,31 +26,33 @@ def branding():
                 target="_blank",
                 children=[
                     html.Img(
-                        src="/assets/nasa_logo.png",
+                        src="/assets/images/nasa_logo.png",
                         style={"height": "40px", "marginRight": "10px"},
                         alt="NASA Logo",
                     )
                 ]
             ),
-            html.Div(style={"margin-left": "10px", "margin-right": "10px", "width": "2px", "height": "30px", "background-color": "rgba(0, 0, 0, 0.15)"}),
+            html.Div(style={"margin-left": "10px", "margin-right": "10px", "width": "2px",
+                     "height": "30px", "background-color": "rgba(0, 0, 0, 0.15)"}),
             html.A(
                 href="https://pace.oceansciences.org/harp2.htm",
                 target="_blank",
                 children=[
                     html.Img(
-                        src="/assets/nasa_pace_logo.png",
+                        src="/assets/images/nasa_pace_logo.png",
                         style={"height": "40px", "marginRight": "10px"},
                         alt="PACE HARP2 Logo",
                     )
                 ]
             ),
-            html.Div(style={"margin-left": "10px", "margin-right": "10px", "width": "2px", "height": "30px", "background-color": "rgba(0, 0, 0, 0.15)"}),
+            html.Div(style={"margin-left": "10px", "margin-right": "10px", "width": "2px",
+                     "height": "30px", "background-color": "rgba(0, 0, 0, 0.15)"}),
             html.A(
                 href="https://esi.umbc.edu/",
                 target="_blank",
                 children=[
                     html.Img(
-                        src="/assets/umbc_esi_logo.jpg",
+                        src="/assets/images/umbc_esi_logo.jpg",
                         style={"height": "40px"},
                         alt="UMBC Logo",
                     ),

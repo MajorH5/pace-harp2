@@ -4,7 +4,7 @@ import terracotta
 from terracotta.server import create_app
 from terracotta import update_settings
 from utils import extract_granule_metadata
-from l1_to_tiff import l1_to_tiff, read_l1_data
+from geospatial_data.l1_to_tiff import l1_to_tiff, read_l1_data
 
 CHANNEL_INDEXES = {
     "red": 40, "green": 4,
@@ -12,8 +12,8 @@ CHANNEL_INDEXES = {
 }
 AH2_PARAMS = ["instrument", "date", "channel"]
 DB_NAME = "tc_db.sqlite"
-DB_PATH = "database"
-SAMPLES_PATH = "granules"
+DB_PATH = "geospatial_data/database"
+SAMPLES_PATH = "geospatial_data/granules"
 HOST = "localhost"
 PORT = "5000"
 ANGLE_INDEX = 40
@@ -21,6 +21,7 @@ ANGLE_INDEX = 40
 # apply global settings update
 # to terracotta
 update_settings(DRIVER_PATH=os.path.join(DB_PATH, DB_NAME), REPROJECTION_METHOD="nearest")
+
 
 class PACEHARP2TCServer:
     def __init__(self, driver_path, nuke=True):
@@ -36,7 +37,7 @@ class PACEHARP2TCServer:
         self._files = []
         self._driver = terracotta.get_driver(database_file)
         self._server = create_app()
-            
+
         if not os.path.isfile(database_file):
             self._driver.create(keys=AH2_PARAMS)
 
@@ -44,6 +45,9 @@ class PACEHARP2TCServer:
         self._server.run(port=port, host=host, threaded=False)
 
     def load_from_directory(self, data_path):
+        if not os.path.isdir(data_path):
+            raise Exception("")
+
         entries = [e for e in os.listdir(data_path) if e.split(".")[-1] == "nc"]
 
         print(f"PACEHARP2TCServer.load_from_directory: loading {len(entries)} files from {data_path}")
@@ -61,8 +65,6 @@ class PACEHARP2TCServer:
         prefix, _ = os.path.splitext(filename)
         os.makedirs(os.path.join(self._driver_path, prefix), exist_ok=True)
 
-        print(f"PACEHARP2TCServer.serve_granule: converting {filename} netCDF -> GeoTIFF")
-
         channels = CHANNEL_INDEXES.keys()
 
         # TODO: change l1c constant to be based upon file name
@@ -79,12 +81,13 @@ class PACEHARP2TCServer:
             metadata["channel"] = channel
 
             if metadata == None:
-                raise Exception(f"PACEHARP2TCServer.serve_granule: File '{filename}' has an unexpected naming convention.")
-            
+                raise Exception(f"PACEHARP2TCServer.serve_granule: File '{
+                                filename}' has an unexpected naming convention.")
+
             # place into tc driver
             with self._driver.connect():
                 self._driver.insert(metadata, tiff_path)
-                print(f"PACEHARP2TCServer.serve_granule: {channel} channel has been successfully inserted")
+
 
 if __name__ == "__main__":
     tc_server = PACEHARP2TCServer(DB_PATH)

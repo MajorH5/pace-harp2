@@ -5,9 +5,9 @@ import re
 
 def get_date_range(available):
     """
-        Given a list of days that have data, returns a list of days
-        that do not have data between the oldest and latest
-        date in the list
+    Given a list of days that have data, returns a list of days
+    that do not have data between the oldest and latest
+    date in the list
     """
     min = available[0]
     max = available[0]
@@ -33,9 +33,9 @@ def get_date_range(available):
 
 def extract_granule_metadata(filename):
     """
-        Parses the date, instrument, and all related data
-        from a data sample filename
-        e.x.: PACEPAX-AH2MAP-L1C_ER2_20240910T175007_RA.nc
+    Parses the date, instrument, and all related data
+    from a data sample filename
+    e.x.: PACEPAX-AH2MAP-L1C_ER2_20240910T175007_RA.nc
     """
     #             yyyy     mm     dd    hh      mm     ss
     pattern = r"_(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})"
@@ -60,10 +60,10 @@ def extract_granule_metadata(filename):
 
 def get_average_of_coordinates(points):
     """
-        Given a list of points in the format:
-            [[x1, y1], [x2, y2], [[x3, y3], ...]]
-        Returns a point that represents the average
-        of all the listed points
+    Given a list of points in the format:
+        [[x1, y1], [x2, y2], [[x3, y3], ...]]
+    Returns a point that represents the average
+    of all the listed points
     """
     
     x_sum = 0
@@ -74,19 +74,21 @@ def get_average_of_coordinates(points):
         y_sum += point[1]
 
     total_points = len(points)
+    
     return [x_sum / total_points, y_sum / total_points]
 
-def rgb_url(api_url, *keys, red_key, green_key, blue_key):
+def rgb_url(api_url, *keys, red_key, green_key, blue_key, stretch_range):
     """
-        Returns a terracotta rgb server end point url
-        given the base keys, and RGB channel keys
+    Returns a terracotta rgb server end point url
+    given the base keys, and RGB channel keys
     """
     url = urljoin(api_url, "rgb", *keys, "{z}/{x}/{y}.png")
 
     lookup = {
         "r": red_key,
         "g": green_key,
-        "b": blue_key 
+        "b": blue_key ,
+        "stretch_range": f"[{stretch_range[0]},{stretch_range[1]}]"
     }
     
     return f"{url}?{urllib.parse.urlencode(lookup)}"
