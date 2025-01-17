@@ -48,15 +48,39 @@ class PACEHARP2TCServer:
         if not os.path.isdir(data_path):
             raise Exception("")
 
-        entries = [e for e in os.listdir(data_path) if e.split(".")[-1] == "nc"]
+        entries = []
 
-        print(f"PACEHARP2TCServer.load_from_directory: loading {len(entries)} files from {data_path}")
+        # now we need to filter through the data path
+        # and collect all netCDF files to convert and insert.
+        # avoid rentry of already present data
+        for entry in os.listdir(data_path):
+            if entry.split(".")[-1] == "nc":
+                basename = os.path.basename(entry)
+                metadata = extract_granule_metadata(basename)
 
-        for i in range(len(entries)):
-            print(f"PACEHARP2TCServer.load_from_directory: file {i} of {len(entries)}")
-            entry = entries[i]
-            path = os.path.join(data_path, entry)
-            tc_server.serve_granule(path)
+                if not self.dataset_exists(**metadata):
+                    entries.append(entries)
+                else:
+                    print(f"PACEHARP2TCServer.serve_granule: skipping {basename} since it already exists")
+        
+        if len(entries) > 0:
+            print(f"PACEHARP2TCServer.load_from_directory: loading {len(entries)} files from {data_path}")
+
+            with self._driver.connect():
+                for i in range(len(entries)):
+                    print(f"PACEHARP2TCServer.load_from_directory: file {i} of {len(entries)}")
+                    entry = entries[i]
+                    path = os.path.join(data_path, entry)
+                    tc_server.serve_granule(path)
+
+    def dataset_exists(self, instrument, date):
+        datasets = self._driver.get_datasets()
+
+        for key in datasets:
+            if key[0] == instrument and key[1] == date:
+                return True
+        
+        return False
 
     def serve_granule(self, nc_path):
         filename = os.path.basename(nc_path)
@@ -65,12 +89,12 @@ class PACEHARP2TCServer:
         prefix, _ = os.path.splitext(filename)
         os.makedirs(os.path.join(self._driver_path, prefix), exist_ok=True)
 
-        channels = CHANNEL_INDEXES.keys()
-
         # TODO: change l1c constant to be based upon file name
         #       once we are sure file naming is consistent
         l1_data = read_l1_data(nc_path, "l1c")
         l1_meta = extract_granule_metadata(filename)
+
+        channels = CHANNEL_INDEXES.keys()
 
         for channel in channels:
             tiff_path = os.path.join(self._driver_path, prefix, f"{channel}-channel.tiff")
@@ -85,11 +109,10 @@ class PACEHARP2TCServer:
                                 filename}' has an unexpected naming convention.")
 
             # place into tc driver
-            with self._driver.connect():
-                self._driver.insert(metadata, tiff_path)
+            self._driver.insert(metadata, tiff_path)
 
 
 if __name__ == "__main__":
-    tc_server = PACEHARP2TCServer(DB_PATH)
+    tc_server = PACEHARP2TCServer(DB_PATH, False)
     tc_server.load_from_directory(SAMPLES_PATH)
     tc_server.run(PORT, HOST)
