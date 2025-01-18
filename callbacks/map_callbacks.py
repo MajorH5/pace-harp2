@@ -1,4 +1,5 @@
 import requests
+from math import floor
 
 from dash.dependencies import Output, Input, State
 from dash.exceptions import PreventUpdate
@@ -87,7 +88,7 @@ def register_map_callbacks(app):
                 # just use our own computed min, max
                 new_stretch_range = [min, max]
 
-            marks = {v: "{:.1f}".format(v) for v in new_stretch_range}
+            marks = {floor(v): "{:.1f}".format(v) for v in new_stretch_range}
 
             if is_combined_rgb:
                 url = rgb_url(TC_URL, INSTRUMENT, formatted_date, red_key="red",
