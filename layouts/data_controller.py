@@ -8,12 +8,24 @@ GEO_LAYERS = {
     "Voyager": "voyager_no_labels_no_buildings"
 }
 
+
+def create_granule_view(time):
+    return html.Div(
+        style={"display": "flex", "align-items": "center", "margin-bottom": "5px"},
+        children=[
+            html.Span(time, style={"flex": "1"}),
+            html.Button("X", id={"type": "remove-granule", "index": 1}, n_clicks=0, className="button",
+                        style={"background-color": "rgba(255,0,0,0.10)"})
+        ]
+    )
+
+
 def create_data_controller():
     return html.Div(
         style={"min-width": "200px", "right": "10px"},
         children=[
             html.H4("Parameters", style={
-                    "margin-bottom": "10px", "text-align": "center"}),
+                "margin-bottom": "10px", "text-align": "center"}),
             html.Div("Date"),
             dcc.DatePickerSingle(
                 id="date-picker",
@@ -26,22 +38,48 @@ def create_data_controller():
                 },
                 disabled=True
             ),
-            html.Div("Granule"),
-            dcc.Dropdown(id="granules", disabled=True),
+            html.Div("Granules"),
+            html.Div([
+                dcc.Dropdown(
+                    id="granules",
+                    placeholder="Select a granule",
+                    disabled=True,
+                    style={"flex": "1"}
+                ),
+                html.Button("+", id="add-granule-btn", className="button", n_clicks=0, disabled=True, style={
+                    "margin-left": "10px",
+                    "flex": "0.15"
+                })
+            ], style={"display": "flex", "justify-content": "space-between", "width": "100%", "align-items": "center", "margin-bottom": "10px"}),
+            html.Div("Selected Granules"),
+            html.Div(id="selected-granules-list", children=[
+                # TODO: remove testing views
+                create_granule_view("01/12/24 18:42:31"),
+                create_granule_view("05/30/24 03:33:13"),
+                create_granule_view("02/05/24 02:27:18"),
+                create_granule_view("12/03/23 09:01:53"),
+            ], style={
+                "border": "1px solid #ccc",
+                "padding": "10px",
+                "border-radius": "5px",
+                "max-height": "100px",
+                "overflow-y": "auto"
+            }),
             html.Div(style={"margin-top": "10px", "margin-bottom": "10px", "width": "100%",
-                     "height": "2px", "background-color": "rgba(0, 0, 0, 0.15)"}),
+                            "height": "2px", "background-color": "rgba(0, 0, 0, 0.15)"}),
             html.Div("Channels"),
             dcc.Dropdown(id="dd_param", options=[
-                         dict(value=c.lower(), label=c) for c in CHANNELS], value=CHANNELS[0].lower()),
+                dict(value=c.lower(), label=c) for c in CHANNELS], value=CHANNELS[0].lower()),
             html.Br(),
             html.Div("Colorscale"),
             dcc.Dropdown(id="dd_cmap", options=[
-                         dict(value=c, label=c) for c in COLOR_MAPS], value=COLOR_MAPS[0]),
+                dict(value=c, label=c) for c in COLOR_MAPS], value=COLOR_MAPS[0]),
             html.Br(),
             html.Div("Geographical Layer"),
             dcc.Dropdown(
                 id="geolayer_selector",
-                options=[{"value": GEO_LAYERS[display_name], "label": display_name} for display_name in GEO_LAYERS.keys()],
+                options=[{"value": GEO_LAYERS[display_name], "label": display_name}
+                         for display_name in GEO_LAYERS.keys()],
                 value=GEO_LAYERS["Light"],
             ),
             html.Br(),

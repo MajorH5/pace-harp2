@@ -67,3 +67,10 @@ def register_ui_callbacks(app):
         # fstring would bloat the template
         prefix, postfix = "https://{s}.basemaps.cartocdn.com/rastertiles/", "/{z}/{x}/{y}{r}.png"
         return prefix + value + postfix
+
+    @app.callback(
+        Output("add-granule-btn", "disabled"),
+        Input("granules", "value")
+    )
+    def update_selected_granules(selected_granule):
+        return selected_granule == None
