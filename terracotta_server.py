@@ -59,7 +59,7 @@ class PACEHARP2TCServer:
                 metadata = extract_granule_metadata(basename)
 
                 if not self.dataset_exists(**metadata):
-                    entries.append(entries)
+                    entries.append(entry)
                 else:
                     print(f"PACEHARP2TCServer.serve_granule: skipping {basename} since it already exists")
         
@@ -105,8 +105,7 @@ class PACEHARP2TCServer:
             metadata["channel"] = channel
 
             if metadata == None:
-                raise Exception(f"PACEHARP2TCServer.serve_granule: File '{
-                                filename}' has an unexpected naming convention.")
+                raise Exception(f"PACEHARP2TCServer.serve_granule: File '{filename}' has an unexpected naming convention.")
 
             # place into tc driver
             self._driver.insert(metadata, tiff_path)
