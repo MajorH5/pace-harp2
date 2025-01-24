@@ -15,7 +15,7 @@ def create_root():
         children=[
             dl.Map(id="map", center=[56, 10], zoom=7, children=[
                 dl.TileLayer(url="https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png"),
-                dl.TileLayer(url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png"),
+                dl.TileLayer(id="geolayer", url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png"),
                 dl.TileLayer(url="",id="tc", opacity=0.5),
                 dl.Colorbar(id="cbar", width=150, height=20, style={
                     "margin-left": "40px"}, position="bottomleft"),

@@ -61,3 +61,9 @@ def register_ui_callbacks(app):
     @app.callback(Output("tc", "opacity"), Input("opacity", "value"))
     def update_tile_opacity(opacity):
         return [opacity]
+
+    @app.callback(Output("geolayer", "url"), Input("geolayer_selector", "value"))
+    def update_geolayer_tiles(value):
+        # fstring would bloat the template
+        prefix, postfix = "https://{s}.basemaps.cartocdn.com/rastertiles/", "/{z}/{x}/{y}{r}.png"
+        return prefix + value + postfix
