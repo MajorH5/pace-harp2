@@ -97,9 +97,11 @@ class PACEHARP2TCServer:
         channels = CHANNEL_INDEXES.keys()
 
         for channel in channels:
-            tiff_path = os.path.join(self._driver_path, prefix, f"{channel}-channel.tiff")
-
+            tiff_path = os.path.join(self._driver_path, prefix, f"{channel}-channel.tif")
             l1_to_tiff(l1_data, tiff_path, CHANNEL_INDEXES[channel])
+
+            # optimize by converting to COG
+            os.system(f"terracotta optimize-rasters --overwrite -q {tiff_path} -o {os.path.join(self._driver_path, prefix)}")
 
             metadata = l1_meta.copy()
             metadata["channel"] = channel

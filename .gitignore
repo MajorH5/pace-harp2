@@ -5,6 +5,7 @@ venv/*
 # datasets
 *.nc
 *.tiff
+*.tif
 
 # terracotta server db
 *.sqlite
