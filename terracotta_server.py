@@ -94,6 +94,9 @@ class PACEHARP2TCServer:
         l1_data = read_l1_data(nc_path, "l1c")
         l1_meta = extract_granule_metadata(filename)
 
+        if l1_meta == None:
+            raise Exception(f"PACEHARP2TCServer.serve_granule: File '{filename}' has an unexpected naming convention.")
+
         channels = CHANNEL_INDEXES.keys()
 
         for channel in channels:
@@ -105,9 +108,6 @@ class PACEHARP2TCServer:
 
             metadata = l1_meta.copy()
             metadata["channel"] = channel
-
-            if metadata == None:
-                raise Exception(f"PACEHARP2TCServer.serve_granule: File '{filename}' has an unexpected naming convention.")
 
             # place into tc driver
             self._driver.insert(metadata, tiff_path)
