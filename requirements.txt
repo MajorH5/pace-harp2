@@ -12,3 +12,4 @@ netCDF4
 pyresample
 nasa_pace_data_reader
 terracotta-toolbelt==0.0.5
+cython

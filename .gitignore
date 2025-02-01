@@ -9,3 +9,5 @@ venv/*
 
 # terracotta server db
 *.sqlite
+
+fast-dash/
