@@ -11,21 +11,21 @@ GEO_LAYERS = {
 
 def create_granule_view(time):
     return html.Div(
-        style={"display": "flex", "align-items": "center", "margin-bottom": "5px"},
+        style={"display": "flex", "alignItems": "center", "marginBottom": "5px"},
         children=[
             html.Span(time, style={"flex": "1"}),
             html.Button("X", id={"type": "remove-granule", "index": 1}, n_clicks=0, className="button",
-                        style={"background-color": "rgba(255,0,0,0.10)"})
+                        style={"backgroundColor": "rgba(255,0,0,0.10)"})
         ]
     )
 
 
 def create_data_controller():
     return html.Div(
-        style={"min-width": "200px", "right": "10px"},
+        style={"minWidth": "200px", "right": "10px"},
         children=[
             html.H4("Parameters", style={
-                "margin-bottom": "10px", "text-align": "center"}),
+                "marginBottom": "10px", "textAlign": "center"}),
             html.Div("Date"),
             dcc.DatePickerSingle(
                 id="date-picker",
@@ -33,8 +33,8 @@ def create_data_controller():
                 display_format="YYYY-MM-DD",
                 style={
                     "display": "flex",
-                    "align-items": "center",
-                    "justify-content": "center"
+                    "alignItems": "center",
+                    "justifyContent": "center"
                 },
                 disabled=True
             ),
@@ -47,26 +47,26 @@ def create_data_controller():
                     style={"flex": "1"}
                 ),
                 html.Button("+", id="add-granule-btn", className="button", n_clicks=0, disabled=True, style={
-                    "margin-left": "10px",
+                    "marginLeft": "10px",
                     "flex": "0.15"
                 })
-            ], style={"display": "flex", "justify-content": "space-between", "width": "100%", "align-items": "center", "margin-bottom": "10px"}),
+            ], style={"display": "flex", "justifyContent": "spaceBetween", "width": "100%", "alignItems": "center", "marginBottom": "10px"}),
             html.Div("Selected Granules"),
             html.Div(id="selected-granules-list", children=[
                 # TODO: remove testing views
                 create_granule_view("01/12/24 18:42:31"),
-                create_granule_view("05/30/24 03:33:13"),
-                create_granule_view("02/05/24 02:27:18"),
-                create_granule_view("12/03/23 09:01:53"),
+                # create_granule_view("05/30/24 03:33:13"),
+                # create_granule_view("02/05/24 02:27:18"),
+                # create_granule_view("12/03/23 09:01:53"),
             ], style={
                 "border": "1px solid #ccc",
                 "padding": "10px",
-                "border-radius": "5px",
-                "max-height": "100px",
-                "overflow-y": "auto"
+                "borderRadius": "5px",
+                "maxHeight": "100px",
+                "overflowY": "auto"
             }),
-            html.Div(style={"margin-top": "10px", "margin-bottom": "10px", "width": "100%",
-                            "height": "2px", "background-color": "rgba(0, 0, 0, 0.15)"}),
+            html.Div(style={"marginTop": "10px", "marginBottom": "10px", "width": "100%",
+                            "height": "2px", "backgroundColor": "rgba(0, 0, 0, 0.15)"}),
             html.Div("Channels"),
             dcc.Dropdown(id="dd_param", options=[
                 dict(value=c.lower(), label=c) for c in CHANNELS], value=CHANNELS[0].lower()),

@@ -18,7 +18,7 @@ def create_root():
                 dl.TileLayer(id="geolayer", url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png"),
                 dl.TileLayer(url="",id="tc", opacity=0.5),
                 dl.Colorbar(id="cbar", width=150, height=20, style={
-                    "margin-left": "40px"}, position="bottomleft"),
+                    "marginLeft": "40px"}, position="bottomleft"),
                 dl.LayerGroup(id="layer-group"),
                 dl.AttributionControl(prefix='<a href="https://carto.com/basemaps" target="_blank">cartocdn</a>')
             ], style={"width": "100%", "height": "100%"}),

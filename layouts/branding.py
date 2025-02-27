@@ -32,8 +32,8 @@ def create_branding():
                     )
                 ]
             ),
-            html.Div(style={"margin-left": "10px", "margin-right": "10px", "width": "2px",
-                     "height": "30px", "background-color": "rgba(0, 0, 0, 0.15)"}),
+            html.Div(style={"marginLeft": "10px", "marginRight": "10px", "width": "2px",
+                     "height": "30px", "backgroundColor": "rgba(0, 0, 0, 0.15)"}),
             html.A(
                 href="https://pace.oceansciences.org/harp2.htm",
                 target="_blank",
@@ -45,8 +45,8 @@ def create_branding():
                     )
                 ]
             ),
-            html.Div(style={"margin-left": "10px", "margin-right": "10px", "width": "2px",
-                     "height": "30px", "background-color": "rgba(0, 0, 0, 0.15)"}),
+            html.Div(style={"marginLeft": "10px", "marginRight": "10px", "width": "2px",
+                     "height": "30px", "backgroundColor": "rgba(0, 0, 0, 0.15)"}),
             html.A(
                 href="https://esi.umbc.edu/",
                 target="_blank",

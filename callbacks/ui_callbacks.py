@@ -4,7 +4,7 @@ import requests
 
 from dash.dependencies import Output, Input
 from utils import get_date_range
-from config import TC_URL
+from config import TC_LOCAL
 
 
 def register_ui_callbacks(app):
@@ -23,7 +23,7 @@ def register_ui_callbacks(app):
     def compute_datepicker_state(selected_date):
         try:
             print("disable_nodata_days: fetching datasets...")
-            result = requests.get(f"{TC_URL}/datasets", timeout=10)
+            result = requests.get(f"{TC_LOCAL}/datasets", timeout=10)
             datasets = result.json()["datasets"]
             total_dates = []
 

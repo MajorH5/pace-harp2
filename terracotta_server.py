@@ -5,6 +5,7 @@ from terracotta.server import create_app
 from terracotta import update_settings
 from utils import extract_granule_metadata
 from geospatial_data.l1_to_tiff import l1_to_tiff, read_l1_data
+from config import TC_PORT
 
 CHANNEL_INDEXES = {
     "red": 40, "green": 4,
@@ -15,7 +16,7 @@ DB_NAME = "tc_db.sqlite"
 DB_PATH = "geospatial_data/database"
 SAMPLES_PATH = "geospatial_data/granules"
 HOST = "localhost"
-PORT = "5000"
+PORT = TC_PORT
 ANGLE_INDEX = 40
 
 # apply global settings update
@@ -113,7 +114,11 @@ class PACEHARP2TCServer:
             self._driver.insert(metadata, tiff_path)
 
 
+tc_server = PACEHARP2TCServer(DB_PATH, False)
+tc_server.load_from_directory(SAMPLES_PATH)
+
+# expose flask instance for guincorn
+app = tc_server._server
+
 if __name__ == "__main__":
-    tc_server = PACEHARP2TCServer(DB_PATH, False)
-    tc_server.load_from_directory(SAMPLES_PATH)
     tc_server.run(PORT, HOST)

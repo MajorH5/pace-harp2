@@ -10,14 +10,14 @@ DUMMY_HUMIDITY = 65
 
 def create_granule_data_view():
     return html.Div(
-        style={"min-width": "200px", "right": "240px"},
+        style={"minWidth": "200px", "right": "240px"},
         children=[
             html.Div(
-                style={"width": "200px", "font-family": "Arial",
-                       "font-size": "12px"},
+                style={"width": "200px", "fontFamily": "Arial",
+                       "fontSize": "12px"},
                 children=[
                     html.H4("PACE HARPV2 Measurement Data", style={
-                        "margin-bottom": "10px", "text-align": "center"}),
+                        "marginBottom": "10px", "textAlign": "center"}),
                     html.P(f"Date: {DUMMY_DATE}"),
                     html.P(f"Time: {DUMMY_TIME}"),
                     html.P(f"Lat: 0.000, Lon: 0.000"),
@@ -27,7 +27,7 @@ def create_granule_data_view():
                     html.Img(
                         src="/assets/images/image.png",
                         alt="Map Data",
-                        style={"width": "100%", "margin-top": "10px"}
+                        style={"width": "100%", "marginTop": "10px"}
                     ),
                     html.A(
                         "→ View image",
