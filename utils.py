@@ -1,6 +1,8 @@
 from datetime import datetime, timedelta
 from terracotta_toolbelt import urljoin
 import urllib.parse
+import binascii
+import os
 import re
 
 def get_date_range(available):
@@ -92,3 +94,18 @@ def rgb_url(api_url, *keys, red_key, green_key, blue_key, stretch_range):
     }
     
     return f"{url}?{urllib.parse.urlencode(lookup)}"
+
+def generate_uuid():
+    """
+        Generate a new random uuid
+    """
+    random_bytes = os.urandom(16)
+    hex_string = binascii.hexlify(random_bytes).decode('utf-8')
+    
+    return '-'.join([
+        hex_string[:8],
+        hex_string[8:12],
+        '4' + hex_string[13:16],
+        hex(int(hex_string[16:20], 16) & 0x3fff | 0x8000)[2:],
+        hex_string[20:]
+    ])

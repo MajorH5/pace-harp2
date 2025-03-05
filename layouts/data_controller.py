@@ -9,12 +9,12 @@ GEO_LAYERS = {
 }
 
 
-def create_granule_view(time):
+def create_granule_view(time, guid):
     return html.Div(
         style={"display": "flex", "alignItems": "center", "marginBottom": "5px"},
         children=[
             html.Span(time, style={"flex": "1"}),
-            html.Button("X", id={"type": "remove-granule", "index": 1}, n_clicks=0, className="button",
+            html.Button("X", id=f"remove-granule-{guid}", n_clicks=0, className="button",
                         style={"backgroundColor": "rgba(255,0,0,0.10)"})
         ]
     )
@@ -52,13 +52,7 @@ def create_data_controller():
                 })
             ], style={"display": "flex", "justifyContent": "spaceBetween", "width": "100%", "alignItems": "center", "marginBottom": "10px"}),
             html.Div("Selected Granules"),
-            html.Div(id="selected-granules-list", children=[
-                # TODO: remove testing views
-                create_granule_view("01/12/24 18:42:31"),
-                # create_granule_view("05/30/24 03:33:13"),
-                # create_granule_view("02/05/24 02:27:18"),
-                # create_granule_view("12/03/23 09:01:53"),
-            ], style={
+            html.Div(id="selected-granules-list", children=[], style={
                 "border": "1px solid #ccc",
                 "padding": "10px",
                 "borderRadius": "5px",
