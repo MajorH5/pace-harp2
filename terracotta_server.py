@@ -11,7 +11,7 @@ CHANNEL_INDEXES = {
     "red": 40, "green": 4,
     "blue": 84, "infrared": 74
 }
-AH2_PARAMS = ["instrument", "date", "channel"]
+AH2_PARAMS = ["campaign", "instrument", "date", "level", "channel"]
 DB_NAME = "tc_db.sqlite"
 DB_PATH = "geospatial_data/database"
 SAMPLES_PATH = "geospatial_data/granules"
@@ -74,11 +74,12 @@ class PACEHARP2TCServer:
                     path = os.path.join(data_path, entry)
                     tc_server.serve_granule(path)
 
-    def dataset_exists(self, instrument, date):
+    def dataset_exists(self, campaign, instrument, date, level, channel):
         datasets = self._driver.get_datasets()
 
         for key in datasets:
-            if key[0] == instrument and key[1] == date:
+            if  (key[0] == campaign and key[1] == instrument and
+                 key[2] == date and key[3] == level and key[4] == channel):
                 return True
         
         return False

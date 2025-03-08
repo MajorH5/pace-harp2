@@ -47,17 +47,24 @@ def extract_granule_metadata(filename):
         return None
     
     year, month, day, hour, minute, second = result.groups()
-    # date = datetime.strptime(f"{year}-{month}-{day}-{hour}-{minute}-{second}", "%Y-%m-%d-%H-%M-%S")
     date = f"{year}-{month}-{day}_{hour}:{minute}:{second}"
 
     instrument_data = filename.split("_")[0]
+    parameters = instrument_data.split("-")
+
+    campaign = parameters[0]
+    instrument = parameters[1]
+    level = parameters[2]
 
     if instrument_data == None:
         return None
 
     return {
-        "instrument": instrument_data,
-        "date": date
+        "campaign": campaign,
+        "instrument": instrument,
+        "date": date,
+        "level": level,
+        "channel": "" # needs to be separated first into indvidual channels
     }
 
 def get_average_of_coordinates(points):

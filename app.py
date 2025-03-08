@@ -12,4 +12,4 @@ apply_layout(app)  # create client UI
 register_callbacks(app)  # enable ui interactions (server->client callbacks)
 
 if __name__ == '__main__':
-    app.run_server(port=8050, debug=True)
+    app.run_server(port=8050)

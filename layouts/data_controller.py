@@ -82,5 +82,28 @@ def create_data_controller():
                        step=0.1, marks={0: "0", 0.5: "0.5", 1: "1"}),
             html.Br(),
             html.Div("Stretch range"),
-            dcc.RangeSlider(id="srng", min=0, max=0, value=[0, 0], disabled=True)
+            dcc.RangeSlider(id="srng", min=0, max=0, value=[0, 0], disabled=True),
+
+            html.Div("Campaign"),
+            dcc.Dropdown(
+                id="campaign_selector",
+                options=[{"value": "PACEPAX", "label": "Pace-Pax"}],
+                value="PACEPAX"
+            ),
+            html.Br(),
+            
+            html.Div("Instrument"),
+            dcc.Dropdown(
+                id="instrument_selector",
+                options=[{"value": "AH2MAP", "label": "HARP2 Polarimeter"}],
+                value="AH2MAP"
+            ),
+            html.Br(),
+            
+            html.Div("Level"),
+            dcc.Dropdown(
+                id="level_selector",
+                options=[{"value": "L1C", "label": "Level 1C"}],
+                value="L1C"
+            )
         ], className="info")

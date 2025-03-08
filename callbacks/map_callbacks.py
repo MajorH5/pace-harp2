@@ -8,9 +8,6 @@ from utils import get_average_of_coordinates, rgb_url
 from terracotta_toolbelt import singleband_url
 from config import TC_URL
 
-INSTRUMENT = "PACEPAX-AH2MAP-L1C"
-
-
 def register_map_callbacks(app):
     @app.callback(
         [
@@ -34,11 +31,15 @@ def register_map_callbacks(app):
             Input("srng", "value"),
             State("srng", "min"),
             State("srng", "max"),
-            Input("dd_param", "value")
+            Input("dd_param", "value"),
+            Input("campaign_selector", "value"),
+            Input("instrument_selector", "value"),
+            Input("level_selector", "value"),
         ]
     )
-    def configure_map_properties(date, time, cmap, srng, curr_min, curr_max, channel):
-        if not date or not cmap or not time:
+    def configure_map_properties(date, time, cmap, srng, curr_min, curr_max,
+        channel, campaign, instrument, level):
+        if any(arg == None for arg in [date, cmap, time, campaign, instrument, level]):
             raise PreventUpdate
 
         try:
@@ -54,7 +55,7 @@ def register_map_callbacks(app):
             formatted_date = f"{date}_{time}"
 
             result = requests.get(
-                f"{TC_URL}/metadata/{INSTRUMENT}/{formatted_date}/{query_channel}")
+                f"{TC_URL}/metadata/{campaign}/{instrument}/{formatted_date}/{level}/{query_channel}")
             metadata = result.json()
 
             mean = metadata["mean"]
@@ -91,14 +92,14 @@ def register_map_callbacks(app):
             marks = {floor(v): "{:.1f}".format(v) for v in new_stretch_range}
 
             if is_combined_rgb:
-                url = rgb_url(TC_URL, INSTRUMENT, formatted_date, red_key="red",
+                url = rgb_url(TC_URL, campaign, instrument, formatted_date, level, red_key="red",
                               green_key="green", blue_key="blue", stretch_range=new_stretch_range)
             else:
-                url = singleband_url(TC_URL, INSTRUMENT, formatted_date, channel, colormap=cmap.lower(
+                url = singleband_url(TC_URL, campaign, instrument, formatted_date, level, channel, colormap=cmap.lower(
                 ), stretch_range=new_stretch_range)
 
             # two min-max exports, one for colorbar, one for slider
             return url, cmap, min, max, "radiance", viewport_status, False, min, max, new_stretch_range, marks, is_combined_rgb
         except:
-            print(f"center_bounds: failed to retrieve metadata for {INSTRUMENT}/{formatted_date}")
+            print(f"center_bounds: failed to retrieve metadata for {instrument}/{formatted_date}")
             raise PreventUpdate
