@@ -59,7 +59,7 @@ class PACEHARP2TCServer:
                 basename = os.path.basename(entry)
                 metadata = extract_granule_metadata(basename)
 
-                if not self.dataset_exists(**metadata):
+                if not self.dataset_exists(metadata):
                     entries.append(entry)
                 else:
                     print(f"PACEHARP2TCServer.serve_granule: skipping {basename} since it already exists")
@@ -74,12 +74,12 @@ class PACEHARP2TCServer:
                     path = os.path.join(data_path, entry)
                     tc_server.serve_granule(path)
 
-    def dataset_exists(self, campaign, instrument, date, level):
+    def dataset_exists(self, metadata):
         datasets = self._driver.get_datasets()
 
         for key in datasets:
-            if  (key[0] == campaign and key[1] == instrument and
-                 key[2] == date and key[3] == level):
+            if  (key[0] == metadata["campaign"] and key[1] == metadata["instrument"] and
+                 key[2] == metadata["date"] and key[3] == metadata["level"]):
                 return True
         
         return False
