@@ -74,12 +74,12 @@ class PACEHARP2TCServer:
                     path = os.path.join(data_path, entry)
                     tc_server.serve_granule(path)
 
-    def dataset_exists(self, campaign, instrument, date, level, channel):
+    def dataset_exists(self, campaign, instrument, date, level):
         datasets = self._driver.get_datasets()
 
         for key in datasets:
             if  (key[0] == campaign and key[1] == instrument and
-                 key[2] == date and key[3] == level and key[4] == channel):
+                 key[2] == date and key[3] == level):
                 return True
         
         return False
