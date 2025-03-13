@@ -4,9 +4,11 @@ from math import floor
 from dash.dependencies import Output, Input, State
 from dash.exceptions import PreventUpdate
 
-from utils import get_average_of_coordinates, rgb_url
+from utils import get_average_of_coordinates, combine_url
 from terracotta_toolbelt import singleband_url
 from config import TC_URL
+
+RGB_KEYS = ["red", "green", "blue"]
 
 def register_map_callbacks(app):
     @app.callback(
@@ -35,14 +37,24 @@ def register_map_callbacks(app):
             Input("campaign_selector", "value"),
             Input("instrument_selector", "value"),
             Input("level_selector", "value"),
+            State("selected-granules-list", "children")
         ]
     )
     def configure_map_properties(date, time, cmap, srng, curr_min, curr_max,
-        channel, campaign, instrument, level):
+        channel, campaign, instrument, level, selected_granules):
         if any(arg == None for arg in [date, cmap, time, campaign, instrument, level]):
             raise PreventUpdate
 
-        try:
+        query_granules = []
+
+        for view in selected_granules:
+            selected_date, selected_time = view["props"]["id"].split(" ")
+            query_granules.append((selected_date, selected_time))
+        
+        if (date, time) not in query_granules:
+            query_granules.append((date, time))
+
+        # try:
             query_channel = channel
             is_combined_rgb = channel == "combined (rgb)"
 
@@ -64,10 +76,6 @@ def register_map_callbacks(app):
             if is_combined_rgb:
                 min, max = 0, 100
             else:
-                # TODO: min & max can be accessed via value_range
-                #       however large changes in value across dataset
-                #       in few areas is ruining the range causing it to
-                #       be unecesarily large, fix?
                 min, max = 0, mean + stdev
 
             bounds = metadata["convex_hull"]["coordinates"][0]
@@ -91,15 +99,21 @@ def register_map_callbacks(app):
 
             marks = {floor(v): "{:.1f}".format(v) for v in new_stretch_range}
 
-            if is_combined_rgb:
-                url = rgb_url(TC_URL, campaign, instrument, formatted_date, level, red_key="red",
-                              green_key="green", blue_key="blue", stretch_range=new_stretch_range)
-            else:
-                url = singleband_url(TC_URL, campaign, instrument, formatted_date, level, channel, colormap=cmap.lower(
-                ), stretch_range=new_stretch_range)
+            query_granules = [f"{campaign}/{instrument}/{"_".join(g)}/{level}" for g in query_granules]
+            rgb_keys = RGB_KEYS if is_combined_rgb else None
+
+            url = combine_url(TC_URL, query_granules, rgb_keys)
+
+            # if is_combined_rgb:
+            #     url = rgb_url(TC_URL, campaign, instrument, formatted_date, level, red_key="red",
+            #                   green_key="green", blue_key="blue", stretch_range=new_stretch_range)
+            # else:
+            #     url = singleband_url(TC_URL, campaign, instrument, formatted_date, level, channel, colormap=cmap.lower(
+            #     ), stretch_range=new_stretch_range)
 
             # two min-max exports, one for colorbar, one for slider
             return url, cmap, min, max, "radiance", viewport_status, False, min, max, new_stretch_range, marks, is_combined_rgb
-        except:
-            print(f"center_bounds: failed to retrieve metadata for {instrument}/{formatted_date}")
-            raise PreventUpdate
+        # except Exception as e:
+        #     print(f"center_bounds: failed to retrieve metadata for {instrument}/{formatted_date}")
+        #     print(e)
+        #     raise PreventUpdate

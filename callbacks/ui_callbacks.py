@@ -5,7 +5,7 @@ import requests
 from layouts.data_controller import create_granule_view
 from dash.dependencies import Output, Input, State
 from dash.exceptions import PreventUpdate
-from utils import get_date_range, generate_uuid
+from utils import get_date_range, is_granule_selected
 from config import TC_LOCAL
 
 
@@ -89,25 +89,12 @@ def register_ui_callbacks(app):
         prevent_initial_call=True
     )
     def add_selected_granule(_, tile_layers, selected_granules, date, time):
-        for granule in selected_granules:
-            granule_children = granule["props"]["children"]
-            span_child = granule_children[0]
+        if is_granule_selected(selected_granules, date, time):
+            # this granule being added already exists
+            raise PreventUpdate
 
-            if span_child["props"]["children"] == f"{date} {time}":
-                # this granule being added already exists
-                raise PreventUpdate
-
-        uuid = generate_uuid()
-        view = create_granule_view(f"{date} {time}", uuid)
+        view = create_granule_view(f"{date} {time}")
         selected_granules.append(view)
-        
-        # @app.callback(
-        #     [Output("tile-layers", "children"), Output("selected-graunle-list", "children")],
-        #     [Input(f"remove-granule-{uuid}", "n_clicks")],
-        # )
-        # def curry(*args):
-        #     print("curried called")
-        #     remove_selected_granule(*args)
        
         return tile_layers, selected_granules
     

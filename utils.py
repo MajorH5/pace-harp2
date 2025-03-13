@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from terracotta_toolbelt import urljoin
 import urllib.parse
 import binascii
+import json
 import os
 import re
 
@@ -86,6 +87,17 @@ def get_average_of_coordinates(points):
     
     return [x_sum / total_points, y_sum / total_points]
 
+def is_granule_selected(view_list, date, time):
+    """
+    Returns true if a granule view is found in the
+    list matching the given date and time
+    """
+    for view in view_list:
+        if view["props"]["id"] == f"{date} {time}":
+            return True
+    return False
+
+
 def rgb_url(api_url, *keys, red_key, green_key, blue_key, stretch_range):
     """
     Returns a terracotta rgb server end point url
@@ -93,26 +105,26 @@ def rgb_url(api_url, *keys, red_key, green_key, blue_key, stretch_range):
     """
     url = urljoin(api_url, "rgb", *keys, "{z}/{x}/{y}.png")
 
-    lookup = {
+    params = {
         "r": red_key,
         "g": green_key,
-        "b": blue_key ,
+        "b": blue_key,
         "stretch_range": f"[{stretch_range[0]},{stretch_range[1]}]"
     }
     
-    return f"{url}?{urllib.parse.urlencode(lookup)}"
+    return f"{url}?{urllib.parse.urlencode(params)}"
 
-def generate_uuid():
+def combine_url(api_url, keys_list, rgb_keys = None):
     """
-        Generate a new random uuid
+    Returns a terracota combine end point url
+    given the keys and optional rgb channel
     """
-    random_bytes = os.urandom(16)
-    hex_string = binascii.hexlify(random_bytes).decode('utf-8')
-    
-    return '-'.join([
-        hex_string[:8],
-        hex_string[8:12],
-        '4' + hex_string[13:16],
-        hex(int(hex_string[16:20], 16) & 0x3fff | 0x8000)[2:],
-        hex_string[20:]
-    ])
+
+    url = urljoin(api_url, "combine", "{z}/{x}/{y}.png")
+
+    params = {
+        "keys_list": json.dumps(keys_list),
+        "rgb_keys": json.dumps(rgb_keys)
+    }
+
+    return f"{url}?{urllib.parse.urlencode(params)}"

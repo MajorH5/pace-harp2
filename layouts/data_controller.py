@@ -9,12 +9,13 @@ GEO_LAYERS = {
 }
 
 
-def create_granule_view(time, guid):
+def create_granule_view(time):
     return html.Div(
+        id=time,
         style={"display": "flex", "alignItems": "center", "marginBottom": "5px"},
         children=[
             html.Span(time, style={"flex": "1"}),
-            html.Button("X", id=f"remove-granule-{guid}", n_clicks=0, className="button",
+            html.Button("X", id=f"remove-granule", n_clicks=0, className="button",
                         style={"backgroundColor": "rgba(255,0,0,0.10)"})
         ]
     )
