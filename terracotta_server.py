@@ -6,6 +6,7 @@ from terracotta import update_settings
 from utils import extract_granule_metadata
 from geospatial_data.l1_to_tiff import l1_to_tiff, read_l1_data
 from config import TC_DEFAULT_PORT, CONTENT_TYPE_NETCDF, CONTENT_TYPE_TIFF
+import argparse
 
 CHANNEL_INDEXES = {
     "red": 40, "green": 4,
@@ -16,7 +17,6 @@ DB_NAME = "tc_db.sqlite"
 DB_PATH = "geospatial_data/database"
 SAMPLES_PATH = "geospatial_data/granules"
 HOST = "localhost"
-PORT = TC_DEFAULT_PORT
 ANGLE_INDEX = 40
 
 # apply global settings update
@@ -47,7 +47,7 @@ class PACEHARP2TCServer:
 
     def load_from_directory(self, data_path, content_type=CONTENT_TYPE_NETCDF):
         if not os.path.isdir(data_path):
-            raise Exception("Invalid path provided.")
+            raise Exception(f"Invalid path provided: {data_path} -> os.path.isdir(\"{data_path}\") = {os.path.isdir(data_path)}")
 
         entries = []
         meta_map = {}
@@ -140,11 +140,15 @@ class PACEHARP2TCServer:
 
 
 tc_server = PACEHARP2TCServer(DB_PATH, False)
-# tc_server.load_from_directory(SAMPLES_PATH)
-tc_server.load_from_directory("export", CONTENT_TYPE_TIFF)
-
 # expose flask instance for guincorn
 app = tc_server._server
 
 if __name__ == "__main__":
-    tc_server.run(PORT, HOST)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--tc-port', type=int, default=TC_DEFAULT_PORT)
+    parser.add_argument('--import-dir', type=str, required=True)
+    args = parser.parse_args()
+
+    tc_server.load_from_directory(os.path.expanduser(args.import_dir), CONTENT_TYPE_TIFF)
+
+    tc_server.run(args.tc_port, HOST)
