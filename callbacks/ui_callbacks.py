@@ -25,7 +25,7 @@ def register_ui_callbacks(app):
     def compute_datepicker_state(selected_date):
         try:
             print("disable_nodata_days: fetching datasets...")
-            result = requests.get(f"{TC_LOCAL}/datasets", timeout=10)
+            result = requests.get(f"{TC_LOCAL}/datasets?limit=10000", timeout=10)
             datasets = result.json()["datasets"]
             total_dates = []
 

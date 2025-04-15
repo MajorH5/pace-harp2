@@ -4,7 +4,7 @@ from math import floor
 from dash.dependencies import Output, Input, State
 from dash.exceptions import PreventUpdate
 
-from utils import get_average_of_coordinates, combine_url
+from utils import get_average_of_coordinates, combine_url, rgb_url
 from terracotta_toolbelt import singleband_url
 from config import TC_URL
 
@@ -102,14 +102,13 @@ def register_map_callbacks(app):
             query_granules = [f"{campaign}/{instrument}/{"_".join(g)}/{level}" for g in query_granules]
             rgb_keys = RGB_KEYS if is_combined_rgb else None
 
-            url = combine_url(TC_URL, query_granules, rgb_keys)
+            # url = combine_url(TC_URL, query_granules, rgb_keys)
 
-            # if is_combined_rgb:
-            #     url = rgb_url(TC_URL, campaign, instrument, formatted_date, level, red_key="red",
-            #                   green_key="green", blue_key="blue", stretch_range=new_stretch_range)
-            # else:
-            #     url = singleband_url(TC_URL, campaign, instrument, formatted_date, level, channel, colormap=cmap.lower(
-            #     ), stretch_range=new_stretch_range)
+            if is_combined_rgb:
+                url = rgb_url(TC_URL, campaign, instrument, formatted_date, level, red_key="red",
+                              green_key="green", blue_key="blue", stretch_range=new_stretch_range)
+            else:
+                url = singleband_url(TC_URL, campaign, instrument, formatted_date, level, channel, colormap=cmap.lower(), stretch_range=new_stretch_range)
 
             # two min-max exports, one for colorbar, one for slider
             return url, cmap, min, max, "radiance", viewport_status, False, min, max, new_stretch_range, marks, is_combined_rgb

@@ -5,13 +5,13 @@ from terracotta.server import create_app
 from terracotta import update_settings
 from utils import extract_granule_metadata
 from geospatial_data.l1_to_tiff import l1_to_tiff, read_l1_data
-from config import TC_PORT
+from config import TC_PORT, CONTENT_TYPE_NETCDF, CONTENT_TYPE_TIFF
 
 CHANNEL_INDEXES = {
     "red": 40, "green": 4,
     "blue": 84, "infrared": 74
 }
-AH2_PARAMS = ["campaign", "instrument", "date", "level", "channel"]
+AH2_PARAMS = ["campaign", "instrument", "date", "level", "version", "channel"]
 DB_NAME = "tc_db.sqlite"
 DB_PATH = "geospatial_data/database"
 SAMPLES_PATH = "geospatial_data/granules"
@@ -45,19 +45,26 @@ class PACEHARP2TCServer:
     def run(self, port, host):
         self._server.run(port=port, host=host, threaded=False)
 
-    def load_from_directory(self, data_path):
+    def load_from_directory(self, data_path, content_type=CONTENT_TYPE_NETCDF):
         if not os.path.isdir(data_path):
-            raise Exception("")
+            raise Exception("Invalid path provided.")
 
         entries = []
+        meta_map = {}
 
         # now we need to filter through the data path
         # and collect all netCDF files to convert and insert.
         # avoid rentry of already present data
         for entry in os.listdir(data_path):
-            if entry.split(".")[-1] == "nc":
+            if (
+                (content_type == CONTENT_TYPE_NETCDF and entry.endswith("nc")) or
+                (content_type == CONTENT_TYPE_TIFF and os.path.isdir(os.path.join(data_path, entry)))
+            ):
                 basename = os.path.basename(entry)
                 metadata = extract_granule_metadata(basename)
+
+                if content_type == CONTENT_TYPE_TIFF:
+                    meta_map[entry] = metadata # cache for use below
 
                 if not self.dataset_exists(metadata):
                     entries.append(entry)
@@ -72,7 +79,24 @@ class PACEHARP2TCServer:
                     print(f"PACEHARP2TCServer.load_from_directory: file {i} of {len(entries)}")
                     entry = entries[i]
                     path = os.path.join(data_path, entry)
-                    tc_server.serve_granule(path)
+
+                    if content_type == CONTENT_TYPE_NETCDF:
+                        self.serve_granule(path)
+                    elif content_type == CONTENT_TYPE_TIFF:
+                        # data reading and processing is complete
+                        # all that's left to do is to insert the data
+
+                        for channel in CHANNEL_INDEXES.keys():
+                            metadata = meta_map.get(entry).copy()
+                            metadata["channel"] = channel
+                            
+                            tiff_path = os.path.join(path, f"{channel}-channel.tif")
+                            
+                            try:
+                                self._driver.insert(metadata, tiff_path)
+                            except Exception as e:
+                                print(f"PACEHARP2TCServer.load_from_directory: Failed loading file \"{entry}\" with the folloing error: {e}")
+
 
     def dataset_exists(self, metadata):
         datasets = self._driver.get_datasets()
@@ -116,7 +140,8 @@ class PACEHARP2TCServer:
 
 
 tc_server = PACEHARP2TCServer(DB_PATH, False)
-tc_server.load_from_directory(SAMPLES_PATH)
+# tc_server.load_from_directory(SAMPLES_PATH)
+tc_server.load_from_directory("export", CONTENT_TYPE_TIFF)
 
 # expose flask instance for guincorn
 app = tc_server._server
