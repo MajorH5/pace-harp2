@@ -5,7 +5,7 @@ from terracotta.server import create_app
 from terracotta import update_settings
 from utils import extract_granule_metadata
 from geospatial_data.l1_to_tiff import l1_to_tiff, read_l1_data
-from config import TC_PORT, CONTENT_TYPE_NETCDF, CONTENT_TYPE_TIFF
+from config import TC_DEFAULT_PORT, CONTENT_TYPE_NETCDF, CONTENT_TYPE_TIFF
 
 CHANNEL_INDEXES = {
     "red": 40, "green": 4,
@@ -16,7 +16,7 @@ DB_NAME = "tc_db.sqlite"
 DB_PATH = "geospatial_data/database"
 SAMPLES_PATH = "geospatial_data/granules"
 HOST = "localhost"
-PORT = TC_PORT
+PORT = TC_DEFAULT_PORT
 ANGLE_INDEX = 40
 
 # apply global settings update
