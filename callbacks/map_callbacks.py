@@ -6,7 +6,7 @@ from dash.exceptions import PreventUpdate
 
 from utils import get_average_of_coordinates, combine_url
 from terracotta_toolbelt import singleband_url
-from config import TC_URL
+from config import TC_DEFAULT_URL
 
 RGB_KEYS = ["red", "green", "blue"]
 
@@ -67,7 +67,7 @@ def register_map_callbacks(app):
             formatted_date = f"{date}_{time}"
 
             result = requests.get(
-                f"{TC_URL}/metadata/{campaign}/{instrument}/{formatted_date}/{level}/{query_channel}")
+                f"{TC_DEFAULT_URL}/metadata/{campaign}/{instrument}/{formatted_date}/{level}/{query_channel}")
             metadata = result.json()
 
             mean = metadata["mean"]
@@ -102,7 +102,7 @@ def register_map_callbacks(app):
             query_granules = [f"{campaign}/{instrument}/{"_".join(g)}/{level}" for g in query_granules]
             rgb_keys = RGB_KEYS if is_combined_rgb else None
 
-            url = combine_url(TC_URL, query_granules, rgb_keys)
+            url = combine_url(TC_DEFAULT_URL, query_granules, rgb_keys)
 
             # if is_combined_rgb:
             #     url = rgb_url(TC_URL, campaign, instrument, formatted_date, level, red_key="red",
