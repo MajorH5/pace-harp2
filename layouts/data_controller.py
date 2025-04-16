@@ -79,7 +79,7 @@ def create_data_controller():
             ),
             html.Br(),
             html.Div("Opacity"),
-            dcc.Slider(id="opacity", min=0, max=1, value=0.5,
+            dcc.Slider(id="opacity", min=0, max=1, value=1,
                        step=0.1, marks={0: "0", 0.5: "0.5", 1: "1"}),
             html.Br(),
             html.Div("Stretch range"),
@@ -106,5 +106,15 @@ def create_data_controller():
                 id="level_selector",
                 options=[{"value": "L1C", "label": "Level 1C"}],
                 value="L1C"
+            ),
+
+            html.Div("Version"),
+            dcc.Dropdown(
+                id="version_selector",
+                options=[
+                    {"value": "RA", "label": "RA"},
+                    {"value": "R0", "label": "R0"}
+                ],
+                value="RA"
             )
         ], className="info")

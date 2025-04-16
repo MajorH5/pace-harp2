@@ -50,7 +50,9 @@ def extract_granule_metadata(filename):
     year, month, day, hour, minute, second = result.groups()
     date = f"{year}-{month}-{day}_{hour}:{minute}:{second}"
 
-    instrument_data = filename.split("_")[0]
+    components = filename.split("_")
+    instrument_data = components[0]
+    version = components[-1]
     parameters = instrument_data.split("-")
 
     campaign = parameters[0]
@@ -65,6 +67,7 @@ def extract_granule_metadata(filename):
         "instrument": instrument,
         "date": date,
         "level": level,
+        "version": version,
         "channel": "" # needs to be separated first into indvidual channels
     }
 

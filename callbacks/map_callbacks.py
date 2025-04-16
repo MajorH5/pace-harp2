@@ -36,12 +36,13 @@ def register_map_callbacks(app, tc_url):
             Input("campaign_selector", "value"),
             Input("instrument_selector", "value"),
             Input("level_selector", "value"),
+            Input("version_selector", "value"),
             State("selected-granules-list", "children")
         ]
     )
     def configure_map_properties(date, time, cmap, srng, curr_min, curr_max,
-        channel, campaign, instrument, level, selected_granules):
-        if any(arg == None for arg in [date, cmap, time, campaign, instrument, level]):
+        channel, campaign, instrument, level, version, selected_granules):
+        if any(arg == None for arg in [date, cmap, time, campaign, instrument, level, version]):
             raise PreventUpdate
 
         query_granules = []
@@ -66,7 +67,7 @@ def register_map_callbacks(app, tc_url):
             formatted_date = f"{date}_{time}"
 
             result = requests.get(
-                f"{tc_url}/metadata/{campaign}/{instrument}/{formatted_date}/{level}/{query_channel}")
+                f"{tc_url}/metadata/{campaign}/{instrument}/{formatted_date}/{level}/{version}/{query_channel}")
             metadata = result.json()
 
             mean = metadata["mean"]
@@ -104,10 +105,10 @@ def register_map_callbacks(app, tc_url):
             # url = combine_url(tc_url, query_granules, rgb_keys)
 
             if is_combined_rgb:
-                url = rgb_url(TC_URL, campaign, instrument, formatted_date, level, red_key="red",
+                url = rgb_url(tc_url, campaign, instrument, formatted_date, level, version, red_key="red",
                               green_key="green", blue_key="blue", stretch_range=new_stretch_range)
             else:
-                url = singleband_url(TC_URL, campaign, instrument, formatted_date, level, channel, colormap=cmap.lower(), stretch_range=new_stretch_range)
+                url = singleband_url(tc_url, campaign, instrument, formatted_date, level, version, channel, colormap=cmap.lower(), stretch_range=new_stretch_range)
 
             # two min-max exports, one for colorbar, one for slider
             return url, cmap, min, max, "radiance", viewport_status, False, min, max, new_stretch_range, marks, is_combined_rgb

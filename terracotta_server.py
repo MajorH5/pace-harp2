@@ -145,10 +145,12 @@ app = tc_server._server
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--tc-port', type=int, default=TC_DEFAULT_PORT)
-    parser.add_argument('--import-dir', type=str, required=True)
+    parser.add_argument('--tc-port', type=int, default=TC_DEFAULT_PORT, help="Port for the Terracotta server to run")
+    parser.add_argument('--import-dir', type=str, required=True, help="Location of the import directory")
+    parser.add_argument('--content-type', type=str, choices=['tiff', 'nc'], required=True,
+                        help="Type of content being uploaded (tiff or nc)")
     args = parser.parse_args()
 
-    tc_server.load_from_directory(os.path.expanduser(args.import_dir), CONTENT_TYPE_TIFF)
+    tc_server.load_from_directory(os.path.expanduser(args.import_dir), args.content_type)
 
     tc_server.run(args.tc_port, HOST)
