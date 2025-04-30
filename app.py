@@ -1,3 +1,4 @@
+import os
 
 import dash
 from flask import Flask
@@ -7,17 +8,18 @@ from layouts import apply_layout
 
 from config import DASH_DEFAULT_PORT, TC_DEFAULT_URL
 import argparse
+from dotenv import load_dotenv
+
+load_dotenv()
 
 server = Flask(__name__)
 app = dash.Dash(__name__, server=server)
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--tc-url', type=str, default=TC_DEFAULT_URL, help="public exposed url used by frontend to request new tiles")
-    parser.add_argument('--dash-port', type=int, default=DASH_DEFAULT_PORT, help="port for dash app to run")
-    args = parser.parse_args()
+    tc_url = os.getenv("TC_URL")
+    dash_port = os.getenv("DASH_PORT")
 
     apply_layout(app)  # create client UI
-    register_callbacks(app, args.tc_url)  # enable ui interactions (server->client callbacks)
+    register_callbacks(app, tc_url)  # enable ui interactions (server->client callbacks)
 
-    app.run_server(port=args.dash_port)
+    app.run_server(port=dash_port)

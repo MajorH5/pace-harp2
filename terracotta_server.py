@@ -7,6 +7,9 @@ from utils import extract_granule_metadata
 from geospatial_data.l1_to_tiff import l1_to_tiff, read_l1_data
 from config import TC_DEFAULT_PORT, CONTENT_TYPE_NETCDF, CONTENT_TYPE_TIFF
 import argparse
+from dotenv import load_dotenv
+
+load_dotenv()
 
 CHANNEL_INDEXES = {
     "red": 40, "green": 4,
@@ -144,13 +147,9 @@ tc_server = PACEHARP2TCServer(DB_PATH, False)
 app = tc_server._server
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--tc-port', type=int, default=TC_DEFAULT_PORT, help="Port for the Terracotta server to run")
-    parser.add_argument('--import-dir', type=str, required=True, help="Location of the import directory")
-    parser.add_argument('--content-type', type=str, choices=['tiff', 'nc'], required=True,
-                        help="Type of content being uploaded (tiff or nc)")
-    args = parser.parse_args()
+    tc_port = os.getenv("TC_PORT")
+    import_dir = os.getenv("IMPORT_DIR")
+    content_type = os.getenv("CONTENT_TYPE")
 
-    tc_server.load_from_directory(os.path.expanduser(args.import_dir), args.content_type)
-
-    tc_server.run(args.tc_port, HOST)
+    tc_server.load_from_directory(os.path.expanduser(import_dir), content_type)
+    tc_server.run(tc_port, HOST)
